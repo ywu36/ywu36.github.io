@@ -1,4 +1,5 @@
-{%- comment -%} Patents grouped by status (granted, then pending). {%- endcomment -%}
+{%- comment -%} Patents grouped by status (granted, then pending), 10 per page (site.js). {%- endcomment -%}
+<div class="paged" data-page-size="10">
 {%- assign statuses = "granted,pending" | split: "," -%}
 {%- for status in statuses %}
 {%- assign items = site.data.patents | where: "status", status -%}
@@ -6,7 +7,9 @@
 {%- for p in items %}
 <article class="row">
   {% if p.id != "" %}<a class="row-title" href="{{ site.patent_url }}{{ p.id }}">{{ p.title }}</a>{% else %}<span class="row-title">{{ p.title }}</span>{% endif %}
+  {% if p.summary %}<p class="row-sum">{{ p.summary }}</p>{% endif %}
   <div class="row-meta">{{ p.number }}<span class="dot">•</span>{{ p.date | upcase }}<span class="dot">•</span>{{ p.org | upcase }}</div>
 </article>
 {%- endfor %}
 {%- endfor %}
+</div>

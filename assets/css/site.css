@@ -41,6 +41,8 @@
   }
 }
 
+[hidden] { display: none !important; }
+
 /* 3. Base ----------------------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -94,6 +96,12 @@ button { font: inherit; }
 /* Summary text: post-row excerpt, hero summary and update body share one style */
 .row-ex, .fade, .update-body { margin: 0 0 8px; font: 14px/1.65 var(--sans); color: var(--body); }
 .row-ex b { color: var(--ink); }
+.row-sum { margin: -2px 0 8px; font: 13.5px/1.6 var(--sans); color: var(--muted); }
+.pager { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 22px 0 4px; font: 13px var(--sans); }
+.pager button { all: unset; cursor: pointer; min-width: 28px; padding: 4px 8px; border: 1px solid var(--rule); border-radius: 4px; text-align: center; color: var(--body); }
+.pager button:hover { color: var(--accent); border-color: var(--accent); }
+.pager button[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pager button:disabled { opacity: .35; cursor: default; color: var(--body); border-color: var(--rule); }
 .row-meta { font: 11.5px var(--sans); letter-spacing: .05em; color: var(--muted); }
 .row-meta a { color: inherit; }
 .row-meta a[href^="http"] { color: var(--accent); }
@@ -103,6 +111,8 @@ button { font: inherit; }
 .stat a, .side-sec a { color: inherit; }
 .stat a:hover, .side-sec a:hover { color: var(--accent); opacity: 1; }
 .row .diamonds { max-width: 420px; padding: 4px 0 6px; }
+.exp-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 18px; align-items: start; }
+.org-logo { display: block; width: 48px; height: 48px; margin-top: 3px; border: 1px solid var(--rule); border-radius: 6px; background: #fff; object-fit: contain; }
 .more, .empty { margin-top: 14px; font-size: 14px; color: var(--muted); }
 .more a { color: var(--accent); }
 
@@ -136,6 +146,7 @@ button { font: inherit; }
 .post-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 20px; align-items: center; }
 .post-row .kind { grid-column: 1 / -1; margin-bottom: -12px; }
 .thumb { aspect-ratio: 3 / 2; }
+.mark { display: grid; place-items: center; height: 100%; padding: 0 12px; text-align: center; font: 500 19px/1.2 var(--serif); color: var(--ink); background: rgb(255 255 255 / .35); }
 .update-body p { margin: 0 0 .7em; }
 
 /* Sidebar */

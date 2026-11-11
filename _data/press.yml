@@ -1,68 +1,82 @@
 # Newest first; grouped by year on the site.
 # kind   Article | Talk | Podcast | Interview | Press release | Profile | Award | Presentation
 # shown  optional display date when only the year is known
+# image  optional thumbnail (450x300, assets/img/press/); otherwise `mark` (outlet name) is shown on a tile
 - title: "Decoding the Crowd: AI Agents in Prediction Markets"
   outlet: "Crypto News Australia"
+  image: /assets/img/press/cryptonews-au.jpg
   kind: Article
   date: 2025-11-14
   url: "https://cryptonews.com.au/news/decoding-the-crowd-ai-agents-in-prediction-markets-131734/"
 - title: "6 Best Polymarket Alternatives: Top Crypto Betting Platforms to Try"
   outlet: "CoinCodex"
+  image: /assets/img/press/coincodex.jpg
   kind: Article
   date: 2025-10-21
   url: "https://coincodex.com/article/69116/polymarket-alternatives/"
 - title: "NJEDA Continuing Support for Start-Ups & Strengthening Innovation Economy through NJ Accelerate Program"
   outlet: "New Jersey Economic Development Authority (NJEDA)"
+  image: /assets/img/press/njeda.jpg
   kind: Press release
   date: 2024-10-16
   url: "https://www.njeda.gov/njeda-continuing-support-for-start-ups-strengthening-innovation-economy-through-nj-accelerate-program/"
 - title: "This AI Prediction Market is BETTER Than Polymarket!"
   outlet: "Thinking Crypto"
+  image: /assets/img/press/thinking-crypto.jpg
   kind: Podcast
   date: 2024-09-03
   url: "https://music.youtube.com/podcast/AnwsnbdH2aY"
 - title: "AI creates amazing Prediction Markets w/ PredX | Blockchain Interviews"
   outlet: "Crypto Coin Show"
+  image: /assets/img/press/crypto-coin-show.jpg
   kind: Interview
   date: 2024-03-26
   url: "https://www.youtube.com/watch?v=Nf6ClFfO9Sg"
 - title: "'We're back': Inside NYC's bullish crypto party scene after Bitcoin hit new all-time $70K high"
   outlet: "New York Post"
+  image: /assets/img/press/nypost.jpg
   kind: Article
   date: 2024-03-19
   url: "https://nypost.com/2024/03/19/tech/were-back-inside-nycs-bullish-crypto-party-scene-after-bitcoin-hit-new-all-time-70k-high/"
 - title: "Future of Prediction Markets | Rein Wu - PredX"
   outlet: "Panoptic · DeFi Derivatives Summit, ETHDenver"
+  image: /assets/img/press/panoptic.jpg
   kind: Talk
   date: 2024-03-01
   url: "https://www.youtube.com/watch?v=FOD04QzgRu4"
 - title: "Protocol Village: AI-Enabled Prediction Market PredX Launches Testnet on Sei Chain"
   outlet: "CoinDesk"
+  image: /assets/img/press/coindesk.jpg
   kind: Article
   date: 2024-02-28
   url: "https://www.coindesk.com/tech/2024/02/28/protocol-latest-tech-news-crypto-blockchain"
 - title: "AI-Enabled Prediction Market PredX Raises $500k in Pre-Seed Funding"
   outlet: "The Defiant"
+  image: /assets/img/press/the-defiant.jpg
   kind: Press release
   date: 2024-02-27
   url: "https://thedefiant.io/news/press-releases/ai-enabled-prediction-market-predx-raises-500k-in-pre-seed-funding"
 - title: "PredX.ai: A rising star in the Prediction Market led by Penrose Tech"
   outlet: "TechFlow (深潮) · Binance Square"
+  image: /assets/img/press/techflow.jpg
   kind: Article
   date: 2024-02-27
   url: "https://www.binance.com/en/square/post/4731049659914"
 - title: "Founder Focus: Using AI to help investors understand financial risk"
   outlet: "Sunstone Management"
+  image: /assets/img/press/sunstone.jpg
   kind: Profile
   date: 2023-08-02
   url: "https://www.sunstoneinvestment.com/news/founder-focus-using-ai-to-help-investors-understand-financial-risk/"
 - title: "US-UK PETs Prize Challenge: Special Recognition Prize, Track A (Financial Crime Prevention), Visa Research team"
   outlet: "NIST"
+  image: /assets/img/press/nist.jpg
   kind: Award
   date: 2023-03-31
   url: "https://www.nist.gov/itl/applied-cybersecurity/privacy-engineering/collaboration-space/challenges/us-uk-pets-prize"
 - title: "EDGE: The \"Eye in the Woods\" Image-based Human Detection and Recognition System, Phase II"
   outlet: "BTI, A Department of Homeland Security Center of Excellence · presented by Prof. Kakadiaris"
+  image: /assets/img/press/bti.jpg
   kind: Presentation
   date: 2019-01-01
   shown: "2019"

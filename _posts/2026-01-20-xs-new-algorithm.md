@@ -2,7 +2,7 @@
 title: "X's New Algorithm: from Creator Economy to Engagement Economy"
 date: 2026-01-20
 tags: []
-featured: false
+featured: true
 original: "https://reinwu.substack.com/p/xs-new-algorithm-from-creator-economy"
 image: /assets/img/xs-new-algorithm/cover.png
 image_fit: contain

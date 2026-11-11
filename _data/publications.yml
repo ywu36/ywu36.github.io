@@ -2,14 +2,17 @@
 # authors  mark yourself as "Y. Wu*" (rendered bold)
 # url      published version; arxiv optional
 # exp      Experience entry it belongs to (key in experience.yml)
+# summary  short summary, shown under the authors
 - title: "Graph Anomaly Detection with Adaptive Node Mixup"
   authors: "Q. Zhou, Y. Chen, Z. Xu, Y. Wu*, M. Pan, M. Das, H. Yang, H. Tong"
+  summary: "Labeled anomalies are scarce, so graph anomaly detectors get little supervision. GADAM augments training data with an adaptive mixup of node embeddings, adds efficient negative sampling and prototype-based representation learning, and beats prior methods across several metrics."
   venue: "CIKM"
   year: 2024
   url: "https://doi.org/10.1145/3627673.3679577"
   exp: visa
 - title: "Privacy-Preserving Financial Anomaly Detection via Federated Learning & Multi-Party Computation"
   authors: "S. S. Arora, A. Beams, P. Chatzigiannis, S. Meiser, K. Patel, S. Raghuraman, P. Rindal, H. Shah, Y. Wang, Y. Wu*, H. Yang, M. Zamani"
+  summary: "Lets banks jointly train fraud and anomaly detectors without sharing customer data, by combining federated learning, secure multi-party computation and noisy, differential-privacy-style aggregates. On synthetic data with 7M training transactions, AUPRC rose from about 0.6 to 0.7."
   venue: "ACSAC Workshops"
   year: 2024
   url: "https://doi.org/10.1109/ACSACW65225.2024.00038"
@@ -17,6 +20,7 @@
   exp: visa
 - title: "Rethinking Personalized Federated Learning with Clustering-Based Dynamic Graph Propagation"
   authors: "J. Wang, Y. Chen, Y. Wu*, M. Das, H. Yang, F. Ma"
+  summary: "A simpler personalized federated learning scheme: clients are clustered each round by training status and data distribution, cluster centers become nodes of a weighted graph, and information propagated over that graph updates the models. Effective on three image benchmarks and synthetic structured data."
   venue: "PAKDD"
   year: 2024
   url: "https://doi.org/10.1007/978-981-97-2259-4_12"
@@ -24,12 +28,14 @@
   exp: visa
 - title: "Node Classification Beyond Homophily: Towards a General Solution"
   authors: "Z. Xu, Y. Chen, Q. Zhou, Y. Wu*, M. Pan, H. Yang, H. Tong"
+  summary: "GNNs assume connected nodes share labels and break on heterophilic graphs, and most fixes only work for one model. ALT splits the graph into two components, extracts complementary signals from each and combines them adaptively, improving node classification across many GNN backbones on both homophilic and heterophilic graphs."
   venue: "KDD"
   year: 2023
   url: "https://doi.org/10.1145/3580305.3599446"
   exp: visa
 - title: "Event2Graph: Event-driven Bipartite Graph for Multivariate Time Series Forecasting and Anomaly Detection"
   authors: "Y. Wu*, M. Gu, L. Wang, Y. Lin, F. Wang, H. Yang"
+  summary: "RNN-based multivariate time-series models assume a fixed, fully connected dependency between series. Event2Graph links series to recurring short patterns (\"events\") in a dynamic bipartite graph, turning forecasting and anomaly detection into self-supervised prediction of the graph's edge stream."
   venue: "CIKM Workshop"
   year: 2022
   url: "https://ceur-ws.org/Vol-3375/paper2.pdf"
@@ -37,6 +43,7 @@
   exp: visa
 - title: "SmartQuery: An Active Learning Framework for Graph Neural Networks through Hybrid Uncertainty Reduction"
   authors: "X. Li, Y. Wu*, V. Rakesh, Y. Lin, H. Yang, F. Wang"
+  summary: "Active learning for GNNs under tight labeling budgets: a multi-stage node selection driven by hybrid uncertainty reduction, combining graph structure with label propagation. Competitive with the state of the art with as few as five labels per class on three network datasets."
   venue: "CIKM"
   year: 2022
   url: "https://doi.org/10.1145/3511808.3557701"
@@ -44,12 +51,14 @@
   exp: visa
 - title: "Semi-supervised Context Discovery for Peer-Based Anomaly Detection in Multi-layer Networks"
   authors: "B. Dong, Y. Wu*, M. Yeh, Y. Lin, Y. Chen, H. Yang, F. Wang, et al."
+  summary: "Detects insiders and compromised users as anomalies in multi-layer networks. Relations from all layers are fused to find each node's most relevant peers, nodes that deviate from them are flagged, and limited analyst feedback refines the result; beats common peer-based detectors on sensor and cybersecurity data."
   venue: "ICICS"
   year: 2022
   url: "https://doi.org/10.1007/978-3-031-15777-6_28"
   exp: visa
 - title: "Beating Attackers at Their Own Games: Adversarial Example Detection Using Adversarial Gradient Directions"
   authors: "Y. Wu*, S. S. Arora, Y. Wu, H. Yang"
+  summary: "Detects adversarial examples from the direction of adversarial gradients, needing a single random perturbation instead of many. Averages 97.9% AUC-ROC on CIFAR-10 and 98.6% on ImageNet across five attacks."
   venue: "AAAI"
   year: 2021
   url: "https://doi.org/10.1609/aaai.v35i4.16404"
@@ -57,6 +66,7 @@
   exp: visa
 - title: "Forecast-based Multi-aspect Framework for Multivariate Time-series Anomaly Detection"
   authors: "L. Wang, Y. Lin, Y. Wu*, H. Chen, F. Wang, H. Yang"
+  summary: "Forecast-based multivariate anomaly detectors behave inconsistently because different anomaly types leave different traces. FMUAD uses separate modules for spatial, temporal and correlation changes, learns a joint representation, and consistently outperforms forecast-based baselines."
   venue: "IEEE BigData"
   year: 2021
   url: "https://doi.org/10.1109/BigData52589.2021.9671776"
@@ -64,12 +74,14 @@
   exp: visa
 - title: "Adversarial Example Detection Using Latent Neighborhood Graph"
   authors: "A. Abusnaina, Y. Wu*, S. S. Arora, Y. Wang, F. Wang, H. Yang, D. Mohaisen"
+  summary: "Builds a latent neighborhood graph around each input from reference benign and adversarial examples, then classifies it with a graph attention network. Outperforms prior detectors on CIFAR-10, STL-10 and ImageNet against six attacks, and catches unseen small-perturbation attacks."
   venue: "ICCV"
   year: 2021
   url: "https://doi.org/10.1109/ICCV48922.2021.00759"
   exp: visa
 - title: "Adversarial Light Projection Attacks on Face Recognition Systems: A Feasibility Study"
   authors: "D.-L. Nguyen, S. S. Arora, Y. Wu*, H. Yang"
+  summary: "A real-time physical attack on face recognition: a webcam and projector cast adversarial light patterns onto a face to impersonate a target or evade recognition. Succeeded in white-box and black-box settings on 50 subjects across two open-source systems and one commercial system."
   venue: "CVPR Workshops"
   year: 2020
   url: "https://openaccess.thecvf.com/content_CVPRW_2020/html/w48/Nguyen_Adversarial_Light_Projection_Attacks_on_Face_Recognition_Systems_A_Feasibility_CVPRW_2020_paper.html"
@@ -77,6 +89,7 @@
   exp: visa
 - title: "GroupIM: A Mutual Information Maximization Framework for Neural Group Recommendation"
   authors: "A. Sankar, Y. Wu, Y. Wu*, W. Zhang, H. Yang, H. Sundaram"
+  summary: "Item recommendation for ephemeral groups with little shared history. GroupIM regularizes the user-group embedding space by maximizing mutual information between groups and members and weighting the most informative members, improving NDCG@20 by 31–62% over prior group recommenders."
   venue: "SIGIR"
   year: 2020
   url: "https://doi.org/10.1145/3397271.3401116"
@@ -84,12 +97,14 @@
   exp: visa
 - title: "3-D Face Alignment Using a Convolutional Point-Set Representation"
   authors: "Y. Wu*, I. A. Kakadiaris"
+  summary: "Estimates 3D face pose and shape from point-set feature maps of projected 3D model coordinates, recurrent convolutional stages and reprojection-error refinement. Cuts NME relative to 3DDFA by 25.3% on AFLW2000 and 20.2% on AFLW."
   venue: "IEEE Trans. Biometrics, Behavior, and Identity Science"
   year: 2019
   url: "https://doi.org/10.1109/TBIOM.2019.2944472"
   exp: cbl
 - title: "OGCTL: Occlusion-guided Compact Template Learning for Ensemble Deep Network-based Pose-invariant Face Recognition"
   authors: "Y. Wu*, I. A. Kakadiaris"
+  summary: "Multi-patch deep face templates are large and redundant, and earlier compression ignores occlusion. OGCTL builds compact templates from visible patches only, applying occlusion masks at construction time, and beats DPRFS on image-set verification with a template about 10× smaller."
   venue: "ICB"
   year: 2019
   url: "https://doi.org/10.1109/ICB45273.2019.8987272"
@@ -97,6 +112,7 @@
   exp: cbl
 - title: "GoDP: Globally Optimized Dual Pathway Deep Network Architecture for Facial Landmark Localization In-the-Wild"
   authors: "Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  summary: "An end-to-end dual-pathway network that treats facial landmark localization as cascaded pixel labeling with distance-aware softmax functions. Reaches 1.84 NME on AFLW and improves downstream rank-1 face identification."
   venue: "Image and Vision Computing"
   year: 2018
   url: "https://doi.org/10.1016/j.imavis.2017.12.002"
@@ -104,18 +120,21 @@
   exp: cbl
 - title: "Annotated Face Model-based Alignment: A Robust Landmark-free Pose Estimation Approach for 3D Model Registration"
   authors: "Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  summary: "Landmark-free pose estimation for aligning a 3D face model to a 2D image, so alignment survives missing or wrong landmarks. Beats other landmark-free methods and matches landmark-based ones inside a 3D-aided face recognition pipeline."
   venue: "Machine Vision and Applications"
   year: 2018
   url: "https://doi.org/10.1007/s00138-017-0887-6"
   exp: cbl
 - title: "Monocular 3D Facial Shape Reconstruction from a Single 2D Image with Coupled-Dictionary Learning and Sparse Coding"
   authors: "P. Dou, Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  summary: "Coupled dictionaries for sparse and dense 3D face shape, in two stages: estimate a sparse shape from landmarks, then upscale it to a dense one. More accurate than PCA models, with lower reconstruction error under pose and illumination changes."
   venue: "Pattern Recognition"
   year: 2018
   url: "https://doi.org/10.1016/j.patcog.2018.03.002"
   exp: cbl
 - title: "Facial 3D Model Registration under Occlusions with SensiblePoints-based Reinforced Hypothesis Refinement"
   authors: "Y. Wu*, I. A. Kakadiaris"
+  summary: "Aligns a 3D face model to a 2D image under occlusion: extra \"SensiblePoints\" form pose hypotheses, recurrent policy networks rewarded by FCN confidence maps move them, and the best hypothesis is selected."
   venue: "IJCB"
   year: 2017
   url: "https://doi.org/10.1109/BTAS.2017.8272734"
@@ -123,36 +142,42 @@
   exp: cbl
 - title: "Evaluation of a 3D-aided Pose Invariant 2D Face Recognition System"
   authors: "X. Xu, H. A. Le, P. Dou, Y. Wu*, I. A. Kakadiaris"
+  summary: "A complete 3D-aided 2D face recognition system (3D2D-PIFR) robust to poses up to 90° of yaw. Outperforms VGG-Face, FaceNet and a commercial system by at least 9% on UHDB31 and 3% on IJB-A."
   venue: "IJCB"
   year: 2017
   url: "https://doi.org/10.1109/BTAS.2017.8272729"
   exp: cbl
 - title: "Rendering or Normalization? An Analysis of the 3D-aided Pose-invariant Face Recognition"
   authors: "Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  summary: "An empirical comparison of the two main strategies for 3D-aided pose-invariant face recognition, pose normalization and pose synthesis (rendering), on the 21 controlled poses of UHDB31, setting out each one's strengths and weaknesses."
   venue: "ISBA"
   year: 2016
   url: "https://doi.org/10.1109/ISBA.2016.7477244"
   exp: cbl
 - title: "Towards Fitting a 3D Dense Facial Model to a 2D Image: A Landmark-free Approach"
   authors: "Y. Wu*, X. Xu, S. K. Shah, I. A. Kakadiaris"
+  summary: "Estimates the 3D-to-2D pose projection matrix without landmarks, so a dense face model can be fitted to an image even when landmarks are missing or wrong; validated with head-pose estimation experiments."
   venue: "BTAS"
   year: 2015
   url: "https://doi.org/10.1109/BTAS.2015.7358799"
   exp: cbl
 - title: "Pose-robust Face Signature for Multi-view Face Recognition"
   authors: "P. Dou, L. Zhang, Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  summary: "Multi-view face recognition from pose-robust signatures: a 3D face is reconstructed from one image, its texture is lifted to a canonical space, and self-occlusion is encoded into local features. Removes the need for pose-specific classifiers and performs better on two public datasets."
   venue: "BTAS"
   year: 2015
   url: "https://doi.org/10.1109/BTAS.2015.7358788"
   exp: cbl
 - title: "Robust 3D Face Shape Reconstruction from Single Images via Two-Fold Coupled Structure Learning and Off-the-Shelf Landmark Detectors"
   authors: "P. Dou, Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  summary: "Reconstructs a 3D face from the sparse landmarks of off-the-shelf detectors: learns a regression between 2D and 3D landmark subspaces, a K-SVD coupled dictionary for sparse-to-dense shape, and pose explicitly. Robust to pose changes and landmark noise."
   venue: "BMVC"
   year: 2014
   url: "https://bmva-archive.org.uk/bmvc/2014/papers/paper130/index.html"
   exp: cbl
 - title: "Benchmarking 3D Pose Estimation for Face Recognition"
   authors: "P. Dou, Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  summary: "A synthetic benchmark of 59,000+ face images with ground-truth pose and landmarks, used to compare four pose estimation algorithms driven by two automatic landmark detectors for 3D-aided face recognition."
   venue: "ICPR"
   year: 2014
   url: "https://doi.org/10.1109/ICPR.2014.42"

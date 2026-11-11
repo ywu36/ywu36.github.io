@@ -1,12 +1,15 @@
-{%- comment -%} Publications, newest first. "Y. Wu*" in authors is rendered bold. {%- endcomment -%}
+{%- comment -%} Publications, newest first, 10 per page (site.js). "Y. Wu*" in authors is rendered bold. {%- endcomment -%}
 {%- assign scholar = site.data.profile.links | where: "name", "Google Scholar" | first -%}
+<div class="paged" data-page-size="10">
 {%- for p in site.data.publications %}
 <article class="row">
   <a class="row-title" href="{{ p.url }}">{{ p.title }}</a>
   <p class="row-ex">{{ p.authors | replace: "Y. Wu*", "<b>Y. Wu</b>" }}</p>
+  {% if p.summary %}<p class="row-sum">{{ p.summary }}</p>{% endif %}
   <div class="row-meta">{{ p.venue | upcase }}<span class="dot">•</span>{{ p.year }}{% if p.arxiv %}<span class="dot">•</span><a href="{{ p.arxiv }}">ARXIV</a>{% endif %}</div>
 </article>
 {%- endfor %}
+</div>
 {%- if scholar %}
 <p class="more">Full list: <a href="{{ scholar.url }}">Google Scholar</a></p>
 {%- endif %}

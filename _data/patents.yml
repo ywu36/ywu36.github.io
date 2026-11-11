@@ -2,32 +2,236 @@
 # status   granted | pending
 # id       Google Patents id ("" = no link)
 # exp      Experience entry it belongs to (key in experience.yml)
-- { status: granted, number: "US 12,717,910 B2", id: "US12717910B2", date: "Aug 2026", org: "VISA", exp: visa, title: "System, method, and computer program product for dynamic peer group analysis of systematic changes in large scale data" }
-- { status: granted, number: "US 12,682,290 B2", id: "US12682290B2", date: "Jul 2026", org: "VISA", exp: visa, title: "Method, system, and computer program product for improving machine learning models" }
-- { status: granted, number: "US 12,481,999 B2", id: "US12481999B2", date: "Nov 2025", org: "VISA", exp: visa, title: "Secure anomaly detection using federated learning" }
-- { status: granted, number: "US 12,124,947 B2", id: "US12124947B2", date: "Oct 2024", org: "VISA", exp: visa, title: "System, method, and computer program product for determining adversarial examples" }
-- { status: granted, number: "US 12,118,448 B2", id: "US12118448B2", date: "Oct 2024", org: "VISA", exp: visa, title: "System, method, and computer program product for multi-domain ensemble learning based on multivariate time sequence data" }
-- { status: granted, number: "US 12,074,893 B2", id: "US12074893B2", date: "Aug 2024", org: "VISA", exp: visa, title: "System, method, and computer program product for user network activity anomaly detection (continuation)" }
-- { status: granted, number: "US 12,069,047 B2", id: "US12069047B2", date: "Aug 2024", org: "VISA", exp: visa, title: "Using an enrolled biometric dataset to detect adversarial examples in biometrics-based authentication system (continuation)" }
-- { status: granted, number: "US 11,741,475 B2", id: "US11741475B2", date: "Aug 2023", org: "VISA", exp: visa, title: "System, method, and computer program product for evaluating a fraud detection system (continuation)" }
-- { status: granted, number: "US 11,711,391 B2", id: "US11711391B2", date: "Jul 2023", org: "VISA", exp: visa, title: "System, method, and computer program product for user network activity anomaly detection" }
-- { status: granted, number: "US 11,620,854 B2", id: "US11620854B2", date: "Apr 2023", org: "VISA", exp: visa, title: "Evaluating the security of a facial recognition system using light projections (continuation)" }
-- { status: granted, number: "US 11,496,466 B2", id: "US11496466B2", date: "Nov 2022", org: "VISA", exp: visa, title: "Using an enrolled biometric dataset to detect adversarial examples in biometrics-based authentication system" }
-- { status: granted, number: "US 11,481,485 B2", id: "US11481485B2", date: "Oct 2022", org: "VISA", exp: visa, title: "Methods and systems for peer grouping in insider threat detection" }
-- { status: granted, number: "US 11,443,346 B2", id: "US11443346B2", date: "Sep 2022", org: "VISA", exp: visa, title: "Group item recommendations for ephemeral groups based on mutual information maximization" }
-- { status: granted, number: "US 11,244,321 B2", id: "US11244321B2", date: "Feb 2022", org: "VISA", exp: visa, title: "System, method, and computer program product for evaluating a fraud detection system" }
-- { status: granted, number: "US 11,163,985 B2", id: "US11163985B2", date: "Nov 2021", org: "VISA", exp: visa, title: "Evaluating the security of a facial recognition system using light projections" }
-- { status: pending, number: "EP 4 724 958 A2", id: "EP4724958A2", date: "2026", org: "VISA", exp: visa, title: "Method, system, and computer program product for unsupervised feature engineering in machine learning models" }
-- { status: pending, number: "EP 4 602 523 A1", id: "EP4602523A1", date: "2025", org: "VISA", exp: visa, title: "System, method, and computer program product for generating a machine learning model based on anomaly nodes of a graph" }
-- { status: pending, number: "US 2025/0190804 A1", id: "US20250190804A1", date: "2025", org: "VISA", exp: visa, title: "System, method, and computer program product for active learning in graph neural networks through hybrid uncertainty reduction" }
-- { status: pending, number: "WO 2025/010300 A1", id: "WO2025010300A1", date: "2025", org: "VISA", exp: visa, title: "Automated model selection for time-series outlier detection via meta-learning" }
-- { status: pending, number: "US 2025/0005358 A1", id: "US20250005358A1", date: "2025", org: "VISA", exp: visa, title: "System, method, and computer program product for determining adversarial examples (continuation)" }
-- { status: pending, number: "US 2024/0428142 A1", id: "US20240428142A1", date: "2024", org: "VISA", exp: visa, title: "System, method, and computer program product for multi-domain ensemble learning based on multivariate time sequence data (continuation)" }
-- { status: pending, number: "US 2024/0412098 A1", id: "US20240412098A1", date: "2024", org: "VISA", exp: visa, title: "Synthesizing realistic time series with outliers" }
-- { status: pending, number: "EP 4 352 660", id: "", date: "2024", org: "VISA", exp: visa, title: "System and method for hierarchical periodicity detection on dynamic graphs" }
-- { status: pending, number: "US 2024/0242120 A1", id: "US20240242120A1", date: "2024", org: "IndicatorLab · sole inventor", exp: indicatorlab, title: "System, method, and computer program product for time series forecasting using integrable multivariate pattern matching" }
-- { status: pending, number: "US 2024/0152735 A1", id: "US20240152735A1", date: "2024", org: "VISA", exp: visa, title: "System, method, and computer program product for anomaly detection in multivariate time series" }
-- { status: pending, number: "US 2023/0334332 A1", id: "US20230334332A1", date: "2023", org: "VISA", exp: visa, title: "Detecting adversarial examples using latent neighborhood graphs" }
-- { status: pending, number: "WO 2023/014567 A1", id: "WO2023014567A1", date: "2023", org: "VISA", exp: visa, title: "Method and system for a framework for monitoring acquirer credit settlement risk" }
-- { status: pending, number: "US 2022/0398466 A1", id: "US20220398466A1", date: "2022", org: "VISA", exp: visa, title: "System, method, and computer program product for event forecasting using graph theory based machine learning" }
-- { status: pending, number: "WO 2022/066587 A1", id: "WO2022066587A1", date: "2022", org: "VISA", exp: visa, title: "Graph learning-based system with updated vectors" }
+# summary  short summary, shown under the title
+- status: granted
+  number: "US 12,717,910 B2"
+  id: "US12717910B2"
+  date: "Aug 2026"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for dynamic peer group analysis of systematic changes in large scale data"
+  summary: "Separates true anomalies from system-wide shifts: entities form a relational graph, each target gets a peer group, and a target's behavior change is treated as a false alarm when its peers' risk scores shifted together."
+- status: granted
+  number: "US 12,682,290 B2"
+  id: "US12682290B2"
+  date: "Jul 2026"
+  org: "VISA"
+  exp: visa
+  title: "Method, system, and computer program product for improving machine learning models"
+  summary: "A chain of models turns records into user-specific embeddings and features, scores each entity's relevance, asks the user for feedback, and retrains on that feedback."
+- status: granted
+  number: "US 12,481,999 B2"
+  id: "US12481999B2"
+  date: "Nov 2025"
+  org: "VISA"
+  exp: visa
+  title: "Secure anomaly detection using federated learning"
+  summary: "Federated anomaly detection for financial crime: the detector trains with an aggregator and a bank's account system, using the bank's private account flags without ever seeing them."
+- status: granted
+  number: "US 12,124,947 B2"
+  id: "US12124947B2"
+  date: "Oct 2024"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for determining adversarial examples"
+  summary: "Flags adversarial inputs by retrieving nearby reference inputs, building relational embeddings among them, and classifying the combined representation."
+- status: granted
+  number: "US 12,118,448 B2"
+  id: "US12118448B2"
+  date: "Oct 2024"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for multi-domain ensemble learning based on multivariate time sequence data"
+  summary: "Ensemble anomaly detection on multivariate sequences: scores from several detectors are combined with the raw data in a meta-model, and an alert triggers feature-importance analysis or updates to the model-, time- and feature-domain ensembles."
+- status: granted
+  number: "US 12,074,893 B2"
+  id: "US12074893B2"
+  date: "Aug 2024"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for user network activity anomaly detection (continuation)"
+  summary: "Builds a multilayer graph from users' network-resource activity, merges the layers through weighted adjacency matrices, scores every user, and starts fraud mitigation for anomalous ones."
+- status: granted
+  number: "US 12,069,047 B2"
+  id: "US12069047B2"
+  date: "Aug 2024"
+  org: "VISA"
+  exp: visa
+  title: "Using an enrolled biometric dataset to detect adversarial examples in biometrics-based authentication system (continuation)"
+  summary: "Trains a perturbation detector, a learnable transform plus a classifier, on enrolled, public and adversarially perturbed biometric samples to catch impersonation attempts."
+- status: granted
+  number: "US 11,741,475 B2"
+  id: "US11741475B2"
+  date: "Aug 2023"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for evaluating a fraud detection system (continuation)"
+  summary: "Tests a fraud model with a simulated fraudster: an agent chooses transaction actions, synthesizes fraudulent transactions, and is rewarded when the model misses them."
+- status: granted
+  number: "US 11,711,391 B2"
+  id: "US11711391B2"
+  date: "Jul 2023"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for user network activity anomaly detection"
+  summary: "Builds a multilayer graph from users' network-resource access, merges the layers by a weighted sum of adjacency matrices, and scores each node to find anomalous users."
+- status: granted
+  number: "US 11,620,854 B2"
+  id: "US11620854B2"
+  date: "Apr 2023"
+  org: "VISA"
+  exp: visa
+  title: "Evaluating the security of a facial recognition system using light projections (continuation)"
+  summary: "Security testing for facial recognition: compute a light pattern likely to cause misclassification, project it onto a person, and act on how the system responds."
+- status: granted
+  number: "US 11,496,466 B2"
+  id: "US11496466B2"
+  date: "Nov 2022"
+  org: "VISA"
+  exp: visa
+  title: "Using an enrolled biometric dataset to detect adversarial examples in biometrics-based authentication system"
+  summary: "Hardens biometric login: each user's enrollment is augmented with learned perturbations, and submissions are compared with both original and augmented samples to catch impersonation."
+- status: granted
+  number: "US 11,481,485 B2"
+  id: "US11481485B2"
+  date: "Oct 2022"
+  org: "VISA"
+  exp: visa
+  title: "Methods and systems for peer grouping in insider threat detection"
+  summary: "Insider-threat detection: each employee's peer group is derived from server and application access, rank distances among neighbors are tracked over time, and gaps are scored to flag threats."
+- status: granted
+  number: "US 11,443,346 B2"
+  id: "US11443346B2"
+  date: "Sep 2022"
+  org: "VISA"
+  exp: visa
+  title: "Group item recommendations for ephemeral groups based on mutual information maximization"
+  summary: "Group recommendation for ephemeral groups: encoder and aggregator are trained by maximizing user–group mutual information and weighting informative members (patent counterpart of GroupIM)."
+- status: granted
+  number: "US 11,244,321 B2"
+  id: "US11244321B2"
+  date: "Feb 2022"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for evaluating a fraud detection system"
+  summary: "Tests a fraud model with a simulated fraudster: an agent chooses transaction actions, synthesizes fraudulent transactions, and is rewarded when the model misses them."
+- status: granted
+  number: "US 11,163,985 B2"
+  id: "US11163985B2"
+  date: "Nov 2021"
+  org: "VISA"
+  exp: visa
+  title: "Evaluating the security of a facial recognition system using light projections"
+  summary: "Security testing for facial recognition: compute a light pattern likely to cause misclassification, project it onto a person, and act on how the system responds."
+- status: pending
+  number: "EP 4 724 958 A2"
+  id: "EP4724958A2"
+  date: "2026"
+  org: "VISA"
+  exp: visa
+  title: "Method, system, and computer program product for unsupervised feature engineering in machine learning models"
+  summary: "Unsupervised feature engineering: infer each field's type and value distribution, generate time-series features automatically, score their relevance, and keep the most useful fields for training."
+- status: pending
+  number: "EP 4 602 523 A1"
+  id: "EP4602523A1"
+  date: "2025"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for generating a machine learning model based on anomaly nodes of a graph"
+  summary: "Augments scarce labeled anomaly nodes by generating new nodes from labeled anomalies and random samples, then trains with anomaly and normal centers in embedding space."
+- status: pending
+  number: "US 2025/0190804 A1"
+  id: "US20250190804A1"
+  date: "2025"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for active learning in graph neural networks through hybrid uncertainty reduction"
+  summary: "Active learning for GNNs: train on a partly labeled graph, propagate labels to candidate nodes, and query the node giving the largest hybrid entropy reduction (cf. SmartQuery)."
+- status: pending
+  number: "WO 2025/010300 A1"
+  id: "WO2025010300A1"
+  date: "2025"
+  org: "VISA"
+  exp: visa
+  title: "Automated model selection for time-series outlier detection via meta-learning"
+  summary: "A meta-learner reads query and baseline segments of a time series, infers which outlier types are present, and ranks detection models so the best one is chosen automatically."
+- status: pending
+  number: "US 2025/0005358 A1"
+  id: "US20250005358A1"
+  date: "2025"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for determining adversarial examples (continuation)"
+  summary: "Flags adversarial inputs by retrieving nearby reference inputs, building relational embeddings among them, and classifying the combined representation."
+- status: pending
+  number: "US 2024/0428142 A1"
+  id: "US20240428142A1"
+  date: "2024"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for multi-domain ensemble learning based on multivariate time sequence data (continuation)"
+  summary: "Ensemble anomaly detection on multivariate sequences: scores from several detectors are combined with the raw data in a meta-model, and an alert triggers feature-importance analysis or ensemble updates."
+- status: pending
+  number: "US 2024/0412098 A1"
+  id: "US20240412098A1"
+  date: "2024"
+  org: "VISA"
+  exp: visa
+  title: "Synthesizing realistic time series with outliers"
+  summary: "Synthesizes realistic time series for outlier detection by adding noise in both the time and frequency domains and inserting labeled anomalies, then trains detectors on the result."
+- status: pending
+  number: "EP 4 352 660 A1"
+  id: "EP4352660A1"
+  date: "2024"
+  org: "VISA"
+  exp: visa
+  title: "System and method for hierarchical periodicity detection on dynamic graphs"
+  summary: "Periodicity detection on dynamic graphs: node and edge embeddings plus periodicity labels form per-time subgraph embeddings, which are projected, aggregated and classified as periodic or not."
+- status: pending
+  number: "US 2024/0242120 A1"
+  id: "US20240242120A1"
+  date: "2024"
+  org: "IndicatorLab · sole inventor"
+  exp: indicatorlab
+  title: "System, method, and computer program product for time series forecasting using integrable multivariate pattern matching"
+  summary: "Forecasting by pattern matching: compare a reference series' current window with its own history, take the most similar past moments, project the target series forward from them, and combine the projections with a read-out function."
+- status: pending
+  number: "US 2024/0152735 A1"
+  id: "US20240152735A1"
+  date: "2024"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for anomaly detection in multivariate time series"
+  summary: "Multivariate time-series anomaly detection that compares forecast and actual value, frequency and correlation matrices; a large forecasting error signals an anomaly."
+- status: pending
+  number: "US 2023/0334332 A1"
+  id: "US20230334332A1"
+  date: "2023"
+  org: "VISA"
+  exp: visa
+  title: "Detecting adversarial examples using latent neighborhood graphs"
+  summary: "Builds a graph around an input's features from a reference set, weights edges by distance, and classifies the graph as adversarial or benign (cf. latent neighborhood graph)."
+- status: pending
+  number: "WO 2023/014567 A1"
+  id: "WO2023014567A1"
+  date: "2023"
+  org: "VISA"
+  exp: visa
+  title: "Method and system for a framework for monitoring acquirer credit settlement risk"
+  summary: "Monitors acquirer credit settlement risk by combining acquirer- and merchant-level risk scores from two algorithms over transaction records into a final acquirer score."
+- status: pending
+  number: "US 2022/0398466 A1"
+  id: "US20220398466A1"
+  date: "2022"
+  org: "VISA"
+  exp: visa
+  title: "System, method, and computer program product for event forecasting using graph theory based machine learning"
+  summary: "Event forecasting: detect motifs with matrix profiles, arrange them over time in a bipartite graph, and train a model to predict whether an event occurs in a given interval (cf. Event2Graph)."
+- status: pending
+  number: "WO 2022/066587 A1"
+  id: "WO2022066587A1"
+  date: "2022"
+  org: "VISA"
+  exp: visa
+  title: "Graph learning-based system with updated vectors"
+  summary: "Keeps vector representations of users and resource providers up to date as new interactions arrive, and uses them to predict future interactions."

@@ -2,7 +2,9 @@
 # key      links publications/patents (their `exp` field) to this entry
 # start/end shown as "start – end"; the sidebar shows the years only
 # sidebar  true = also listed in the right column
+# logo     square org logo (160x160, assets/img/org/)
 - key: indicatorlab
+  logo: /assets/img/org/indicatorlab.png
   org: IndicatorLab Inc.
   role: Founder
   desc: AI-driven financial risk software → the first narrative prediction market
@@ -11,6 +13,7 @@
   where: New York, NY
   sidebar: true
 - key: visa
+  logo: /assets/img/org/visa.png
   org: VISA Research
   role: Staff Research Scientist, 2018 → Tech Lead, 2021 → Sr. Manager (Research Scientist IV), 2022
   desc: Corporate research lab of VISA Inc.
@@ -19,12 +22,14 @@
   where: Palo Alto, CA
   sidebar: true
 - key: qualcomm
+  logo: /assets/img/org/qualcomm.png
   org: Qualcomm Research Center
   role: Research Intern
   start: "05/2016"
   end: "08/2016"
   where: San Diego, CA
 - key: cbl
+  logo: /assets/img/org/uh.png
   org: Computational Biomedicine Lab
   role: Research Assistant
   start: "2013"

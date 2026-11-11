@@ -2,7 +2,7 @@
 title: "Win the Zero-Sum Game First: Why Tech's Youngest Billionaires All Started as Traders"
 date: 2026-01-15
 tags: []
-featured: true
+featured: false
 original: "https://reinwu.substack.com/p/win-the-zero-sum-game-first-why-techs"
 image: /assets/img/win-the-zero-sum-game-first/cover.jpg
 og_image: /assets/img/win-the-zero-sum-game-first/og.jpg
