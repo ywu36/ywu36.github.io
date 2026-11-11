@@ -9,6 +9,7 @@ math: false               # true = load MathJax; write $$x$$
 comments: true            # false = no comment box on this post
 original:                 # optional: URL where it was first published (e.g. Substack)
 image:                    # optional cover: /assets/img/<slug>/cover.jpg
+og_image:                 # optional link-preview image, exactly 1200x630 (falls back to image)
 # image_fit: contain      # optional: letterbox the cover instead of cropping
 # image_bg: "#000000"     # optional: letterbox color
 ---

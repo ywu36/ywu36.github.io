@@ -5,6 +5,7 @@ tags: []
 featured: true
 original: "https://reinwu.substack.com/p/win-the-zero-sum-game-first-why-techs"
 image: /assets/img/win-the-zero-sum-game-first/cover.jpg
+og_image: /assets/img/win-the-zero-sum-game-first/og.jpg
 ---
 
 *The hidden pattern behind 2025's under-30 billionaire class reveals an uncomfortable truth about how trust is earned in tech.*

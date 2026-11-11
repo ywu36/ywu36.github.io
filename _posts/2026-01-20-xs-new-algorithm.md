@@ -7,6 +7,7 @@ original: "https://reinwu.substack.com/p/xs-new-algorithm-from-creator-economy"
 image: /assets/img/xs-new-algorithm/cover.png
 image_fit: contain
 image_bg: "#363635"
+og_image: /assets/img/xs-new-algorithm/cover.png
 ---
 
 Yesterday X open-sourced their recommendation algorithm. Like everyone else, I expected to find Grok reading every post, scoring quality, deciding what’s “good content.”

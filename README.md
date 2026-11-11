@@ -32,7 +32,7 @@ bash scripts/new_post.sh --update "short-slug"  # update (no title, no image)
 git add . && git commit -m "New post" && git push   # live in ~1 min
 ```
 
-Front matter (see `_drafts/TEMPLATE.md`): `title`, `date` (= file-name date), `kind: update`, `tags`, `featured` (Top post), `math`, `comments`, `original`, `image`, `image_fit`, `image_bg`. Text before `<!--more-->` is the summary.
+Front matter (see `_drafts/TEMPLATE.md`): `title`, `date` (= file-name date), `kind: update`, `tags`, `featured` (Top post), `math`, `comments`, `original`, `image`, `og_image` (1200×630 link-preview image), `image_fit`, `image_bg`. Text before `<!--more-->` is the summary.
 
 ## Edit profile / CV
 
