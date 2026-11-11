@@ -18,8 +18,8 @@ patent_url: "https://patents.google.com/patent/"
 # On when repo, repo_id and category_id are all set. Off for one post: `comments: false`.
 giscus:
   repo: "ywu36/ywu36.github.io"
-  repo_id: ""        # from https://giscus.app (data-repo-id)
-  category: "Comments"
+  repo_id: "R_kgDOVrCSlg"
+  category: "Announcements"   # GitHub default category (only maintainers can start threads)
   category_id: ""    # from https://giscus.app (data-category-id)
 
 # ─── Third-party scripts (pinned + integrity-checked) ──────────────────
