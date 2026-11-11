@@ -1,0 +1,29 @@
+---
+layout: null
+permalink: /feed.xml
+---
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{ site.title | xml_escape }}</title>
+  <subtitle>{{ site.data.profile.headline | xml_escape }}</subtitle>
+  <link href="{{ '/feed.xml' | absolute_url }}" rel="self" type="application/atom+xml"/>
+  <link href="{{ '/' | absolute_url }}" rel="alternate" type="text/html"/>
+  <id>{{ '/' | absolute_url }}</id>
+  <updated>{{ site.time | date_to_xmlschema }}</updated>
+  <author><name>{{ site.author | xml_escape }}</name></author>
+  {%- for p in site.posts limit: 50 %}
+  {%- capture title -%}{% if p.title != "" %}{{ p.title }}{% else %}Update: {{ p.content | strip_html | normalize_whitespace | truncate: 80 }}{% endif %}{%- endcapture -%}
+  {%- capture summary -%}{% if p.kind == "update" %}{{ p.content }}{% else %}{{ p.excerpt }}{% endif %}{%- endcapture %}
+  <entry>
+    <title>{{ title | strip | xml_escape }}</title>
+    <link href="{{ p.url | absolute_url }}" rel="alternate" type="text/html"/>
+    <id>{{ p.url | absolute_url }}</id>
+    <published>{{ p.date | date_to_xmlschema }}</published>
+    <updated>{{ p.date | date_to_xmlschema }}</updated>
+    <category term="{{ p.kind | default: 'post' }}"/>
+    <summary>{{ summary | strip_html | normalize_whitespace | truncate: 300 | xml_escape }}</summary>
+    {%- assign cover = p.image | absolute_url %}
+    <content type="html">{% if p.image %}{{ '<p><img src="' | append: cover | append: '" alt=""></p>' | xml_escape }}{% endif %}{{ p.content | xml_escape }}</content>
+  </entry>
+  {%- endfor %}
+</feed>

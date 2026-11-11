@@ -1,0 +1,20 @@
+---
+layout: default
+---
+<article class="post">
+  <header class="post-head">
+    {% if page.title != "" %}<h1>{{ page.title }}</h1>{% endif %}
+    <div class="byline">by <a href="{{ '/about/' | relative_url }}">{{ site.author }}</a> · {{ page.date | date: site.date_format.long }} · {% include reading-time.html post=page %} read</div>
+    {% if page.tags.size > 0 %}<div class="tags">{% for t in page.tags %}<span>{{ t }}</span>{% endfor %}</div>{% endif %}
+  </header>
+  {% if page.image %}<figure class="cover"><img src="{{ page.image | relative_url }}" alt=""></figure>{% endif %}
+  <div class="post-body">{{ content }}</div>
+  {% if page.original %}<p class="original">Originally published on <a href="{{ page.original }}">Substack</a>.</p>{% endif %}
+  {% include share.html %}
+  {% include comments.html %}
+  <nav class="post-nav">
+    {% if page.previous %}<a href="{{ page.previous.url | relative_url }}">← {% include entry-title.html post=page.previous %}</a>{% else %}<span></span>{% endif %}
+    {% if page.next %}<a href="{{ page.next.url | relative_url }}">{% include entry-title.html post=page.next %} →</a>{% endif %}
+  </nav>
+  <a class="home-link" href="{{ '/' | relative_url }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Back to home</a>
+</article>

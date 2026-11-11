@@ -1,0 +1,11 @@
+{%- comment -%} Press, newest first, grouped by year. {%- endcomment -%}
+{%- assign press = site.data.press | sort: "date" | reverse -%}
+{%- assign year = "" -%}
+{%- for p in press %}
+{%- assign y = p.date | date: "%Y" -%}
+{%- if y != year %}<h3 class="sub">{{ y }}</h3>{% assign year = y %}{% endif %}
+<article class="row">
+  <a class="row-title" href="{{ p.url }}">{{ p.title }}</a>
+  <div class="row-meta">{{ p.outlet | upcase }}<span class="dot">•</span>{{ p.kind | upcase }}<span class="dot">•</span>{% if p.shown %}{{ p.shown }}{% else %}{{ p.date | date: site.date_format.month | upcase }}{% endif %}</div>
+</article>
+{%- endfor %}

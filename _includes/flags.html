@@ -1,0 +1,9 @@
+{%- comment -%}
+  Page-level switches, included by head.html (CSP) and comments.html so both agree.
+  comments_on: giscus fully configured, page is a post, and not opted out.
+{%- endcomment -%}
+{%- assign g = site.giscus -%}
+{%- assign comments_on = false -%}
+{%- if page.layout == "post" and g.repo != "" and g.repo_id != "" and g.category_id != "" and page.comments != false -%}
+  {%- assign comments_on = true -%}
+{%- endif -%}

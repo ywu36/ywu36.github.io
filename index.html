@@ -1,0 +1,27 @@
+---
+layout: default
+hide_topbar: true
+---
+{%- assign articles = site.posts | where_exp: "p", "p.kind != 'update'" -%}
+{%- assign updates = site.posts | where: "kind", "update" -%}
+<main class="profile">
+  <h1 class="username">{{ site.author }}</h1>
+  {% include hero.html posts=articles %}
+  <div class="cols">
+    <section>
+      <nav class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="posts" aria-selected="true">Posts</button>
+        <button type="button" role="tab" data-tab="exp">Experience</button>
+        <button type="button" role="tab" data-tab="pubs">Publications</button>
+        <button type="button" role="tab" data-tab="patents">Patents</button>
+        <button type="button" role="tab" data-tab="press">Press</button>
+      </nav>
+      <div class="tab" id="tab-posts" role="tabpanel">{% include stream.html %}</div>
+      <div class="tab" id="tab-exp" role="tabpanel" hidden>{% include cv-experience.html %}</div>
+      <div class="tab" id="tab-pubs" role="tabpanel" hidden>{% include cv-publications.html %}</div>
+      <div class="tab" id="tab-patents" role="tabpanel" hidden>{% include cv-patents.html %}</div>
+      <div class="tab" id="tab-press" role="tabpanel" hidden>{% include cv-press.html %}</div>
+    </section>
+    {% include sidebar.html posts=articles updates=updates %}
+  </div>
+</main>

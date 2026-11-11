@@ -1,0 +1,16 @@
+{%- comment -%} "Top post": newest post with `featured: true` (else newest post). Param: posts (articles only) {%- endcomment -%}
+{%- assign featured = include.posts | where: "featured", true -%}
+{%- assign hero = featured.first | default: include.posts.first -%}
+{%- if hero %}
+<section class="top">
+  <div class="label">Top post</div>
+  <a class="hero" href="{{ hero.url | relative_url }}">
+    <div class="hero-text">
+      <h2>{{ hero.title }}</h2>
+      <p class="fade">{{ hero.excerpt | strip_html | normalize_whitespace | truncate: 260 }}</p>
+      <span class="meta"><b>{% include reading-time.html post=hero %}</b>{{ hero.date | date: site.date_format.short }}</span>
+    </div>
+    {% include cover.html post=hero class="hero-art" tone=0 %}
+  </a>
+</section>
+{%- endif %}

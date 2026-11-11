@@ -1,0 +1,2 @@
+{%- comment -%} Title of a post, or "Update · <date>" for untitled updates. Param: post {%- endcomment -%}
+{%- if include.post.title and include.post.title != "" -%}{{ include.post.title }}{%- else -%}Update · {{ include.post.date | date: site.date_format.long }}{%- endif -%}

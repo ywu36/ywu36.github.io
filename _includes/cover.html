@@ -1,0 +1,11 @@
+{%- comment -%}
+  Cover image for a post (hero, list thumbnail). Falls back to a gradient tile.
+  Params: post, class, tone (0-3, gradient variant)
+  Post front matter: image, image_fit ("contain" to letterbox), image_bg (letterbox color)
+{%- endcomment -%}
+{%- assign p = include.post -%}
+{%- if p.image -%}
+<span class="cover-art {{ include.class }}{% if p.image_fit == 'contain' %} is-contain{% endif %}"{% if p.image_bg %} style="background-color:{{ p.image_bg }}"{% endif %}><img src="{{ p.image | relative_url }}" alt="" loading="lazy"></span>
+{%- else -%}
+<span class="cover-art {{ include.class }} tone-{{ include.tone | default: 0 }}"></span>
+{%- endif -%}

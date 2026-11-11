@@ -1,0 +1,33 @@
+# Source: resume. Newest first.
+# key      links publications/patents (their `exp` field) to this entry
+# start/end shown as "start – end"; the sidebar shows the years only
+# sidebar  true = also listed in the right column
+- key: indicatorlab
+  org: IndicatorLab Inc.
+  role: Founder
+  desc: AI-driven financial risk software → the first narrative prediction market
+  start: "02/2023"
+  end: Present
+  where: New York, NY
+  sidebar: true
+- key: visa
+  org: VISA Research
+  role: Staff Research Scientist, 2018 → Tech Lead, 2021 → Sr. Manager (Research Scientist IV), 2022
+  desc: Corporate research lab of VISA Inc.
+  start: "05/2018"
+  end: "12/2022"
+  where: Palo Alto, CA
+  sidebar: true
+- key: qualcomm
+  org: Qualcomm Research Center
+  role: Research Intern
+  start: "05/2016"
+  end: "08/2016"
+  where: San Diego, CA
+- key: cbl
+  org: Computational Biomedicine Lab
+  role: Research Assistant
+  start: "2013"
+  end: "2018"
+  where: Houston, TX
+  sidebar: true

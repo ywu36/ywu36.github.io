@@ -1,0 +1,27 @@
+{%- comment -%}
+  Row of diamonds, one per item. Dark = post / published / granted; light = update / pending.
+  Params: items, kind (post | publication | patent | press)
+{%- endcomment -%}
+<div class="diamonds">
+{%- for it in include.items -%}
+  {%- case include.kind -%}
+  {%- when "post" -%}
+    {%- capture label -%}{% include entry-title.html post=it %}{%- endcapture -%}
+    {%- assign href = it.url | relative_url -%}
+    {%- if it.kind == "update" -%}{%- assign light = true -%}{%- else -%}{%- assign light = false -%}{%- endif -%}
+  {%- when "publication" -%}
+    {%- capture label -%}{{ it.title }} — {{ it.venue }} {{ it.year }}{%- endcapture -%}
+    {%- assign href = it.url -%}
+    {%- assign light = false -%}
+  {%- when "patent" -%}
+    {%- capture label -%}{{ it.title }} — {{ it.number }}{% if it.status == "pending" %} (pending){% endif %}{%- endcapture -%}
+    {%- if it.id != "" -%}{%- assign href = site.patent_url | append: it.id -%}{%- else -%}{%- assign href = "" -%}{%- endif -%}
+    {%- if it.status == "pending" -%}{%- assign light = true -%}{%- else -%}{%- assign light = false -%}{%- endif -%}
+  {%- when "press" -%}
+    {%- capture label -%}{{ it.title }} — {{ it.outlet }}{%- endcapture -%}
+    {%- assign href = it.url -%}
+    {%- assign light = false -%}
+  {%- endcase -%}
+  {%- if href != "" -%}<a class="d{% unless light %} dark{% endunless %}" href="{{ href }}" title="{{ label | strip | escape }}"></a>{%- else -%}<i class="d{% unless light %} dark{% endunless %}" title="{{ label | strip | escape }}"></i>{%- endif -%}
+{%- endfor -%}
+</div>

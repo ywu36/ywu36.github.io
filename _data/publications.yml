@@ -1,0 +1,159 @@
+# Source: resume (links: dblp). Newest first.
+# authors  mark yourself as "Y. Wu*" (rendered bold)
+# url      published version; arxiv optional
+# exp      Experience entry it belongs to (key in experience.yml)
+- title: "Graph Anomaly Detection with Adaptive Node Mixup"
+  authors: "Q. Zhou, Y. Chen, Z. Xu, Y. Wu*, M. Pan, M. Das, H. Yang, H. Tong"
+  venue: "CIKM"
+  year: 2024
+  url: "https://doi.org/10.1145/3627673.3679577"
+  exp: visa
+- title: "Privacy-Preserving Financial Anomaly Detection via Federated Learning & Multi-Party Computation"
+  authors: "S. S. Arora, A. Beams, P. Chatzigiannis, S. Meiser, K. Patel, S. Raghuraman, P. Rindal, H. Shah, Y. Wang, Y. Wu*, H. Yang, M. Zamani"
+  venue: "ACSAC Workshops"
+  year: 2024
+  url: "https://doi.org/10.1109/ACSACW65225.2024.00038"
+  arxiv: "https://arxiv.org/abs/2310.04546"
+  exp: visa
+- title: "Rethinking Personalized Federated Learning with Clustering-Based Dynamic Graph Propagation"
+  authors: "J. Wang, Y. Chen, Y. Wu*, M. Das, H. Yang, F. Ma"
+  venue: "PAKDD"
+  year: 2024
+  url: "https://doi.org/10.1007/978-981-97-2259-4_12"
+  arxiv: "https://arxiv.org/abs/2401.15874"
+  exp: visa
+- title: "Node Classification Beyond Homophily: Towards a General Solution"
+  authors: "Z. Xu, Y. Chen, Q. Zhou, Y. Wu*, M. Pan, H. Yang, H. Tong"
+  venue: "KDD"
+  year: 2023
+  url: "https://doi.org/10.1145/3580305.3599446"
+  exp: visa
+- title: "Event2Graph: Event-driven Bipartite Graph for Multivariate Time Series Forecasting and Anomaly Detection"
+  authors: "Y. Wu*, M. Gu, L. Wang, Y. Lin, F. Wang, H. Yang"
+  venue: "CIKM Workshop"
+  year: 2022
+  url: "https://ceur-ws.org/Vol-3375/paper2.pdf"
+  arxiv: "https://arxiv.org/abs/2108.06783"
+  exp: visa
+- title: "SmartQuery: An Active Learning Framework for Graph Neural Networks through Hybrid Uncertainty Reduction"
+  authors: "X. Li, Y. Wu*, V. Rakesh, Y. Lin, H. Yang, F. Wang"
+  venue: "CIKM"
+  year: 2022
+  url: "https://doi.org/10.1145/3511808.3557701"
+  arxiv: "https://arxiv.org/abs/2212.01440"
+  exp: visa
+- title: "Semi-supervised Context Discovery for Peer-Based Anomaly Detection in Multi-layer Networks"
+  authors: "B. Dong, Y. Wu*, M. Yeh, Y. Lin, Y. Chen, H. Yang, F. Wang, et al."
+  venue: "ICICS"
+  year: 2022
+  url: "https://doi.org/10.1007/978-3-031-15777-6_28"
+  exp: visa
+- title: "Beating Attackers at Their Own Games: Adversarial Example Detection Using Adversarial Gradient Directions"
+  authors: "Y. Wu*, S. S. Arora, Y. Wu, H. Yang"
+  venue: "AAAI"
+  year: 2021
+  url: "https://doi.org/10.1609/aaai.v35i4.16404"
+  arxiv: "https://arxiv.org/abs/2012.15386"
+  exp: visa
+- title: "Forecast-based Multi-aspect Framework for Multivariate Time-series Anomaly Detection"
+  authors: "L. Wang, Y. Lin, Y. Wu*, H. Chen, F. Wang, H. Yang"
+  venue: "IEEE BigData"
+  year: 2021
+  url: "https://doi.org/10.1109/BigData52589.2021.9671776"
+  arxiv: "https://arxiv.org/abs/2201.04792"
+  exp: visa
+- title: "Adversarial Example Detection Using Latent Neighborhood Graph"
+  authors: "A. Abusnaina, Y. Wu*, S. S. Arora, Y. Wang, F. Wang, H. Yang, D. Mohaisen"
+  venue: "ICCV"
+  year: 2021
+  url: "https://doi.org/10.1109/ICCV48922.2021.00759"
+  exp: visa
+- title: "Adversarial Light Projection Attacks on Face Recognition Systems: A Feasibility Study"
+  authors: "D.-L. Nguyen, S. S. Arora, Y. Wu*, H. Yang"
+  venue: "CVPR Workshops"
+  year: 2020
+  url: "https://openaccess.thecvf.com/content_CVPRW_2020/html/w48/Nguyen_Adversarial_Light_Projection_Attacks_on_Face_Recognition_Systems_A_Feasibility_CVPRW_2020_paper.html"
+  arxiv: "https://arxiv.org/abs/2003.11145"
+  exp: visa
+- title: "GroupIM: A Mutual Information Maximization Framework for Neural Group Recommendation"
+  authors: "A. Sankar, Y. Wu, Y. Wu*, W. Zhang, H. Yang, H. Sundaram"
+  venue: "SIGIR"
+  year: 2020
+  url: "https://doi.org/10.1145/3397271.3401116"
+  arxiv: "https://arxiv.org/abs/2006.03736"
+  exp: visa
+- title: "3-D Face Alignment Using a Convolutional Point-Set Representation"
+  authors: "Y. Wu*, I. A. Kakadiaris"
+  venue: "IEEE Trans. Biometrics, Behavior, and Identity Science"
+  year: 2019
+  url: "https://doi.org/10.1109/TBIOM.2019.2944472"
+  exp: cbl
+- title: "OGCTL: Occlusion-guided Compact Template Learning for Ensemble Deep Network-based Pose-invariant Face Recognition"
+  authors: "Y. Wu*, I. A. Kakadiaris"
+  venue: "ICB"
+  year: 2019
+  url: "https://doi.org/10.1109/ICB45273.2019.8987272"
+  arxiv: "https://arxiv.org/abs/1903.04752"
+  exp: cbl
+- title: "GoDP: Globally Optimized Dual Pathway Deep Network Architecture for Facial Landmark Localization In-the-Wild"
+  authors: "Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  venue: "Image and Vision Computing"
+  year: 2018
+  url: "https://doi.org/10.1016/j.imavis.2017.12.002"
+  arxiv: "https://arxiv.org/abs/1704.02402"
+  exp: cbl
+- title: "Annotated Face Model-based Alignment: A Robust Landmark-free Pose Estimation Approach for 3D Model Registration"
+  authors: "Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  venue: "Machine Vision and Applications"
+  year: 2018
+  url: "https://doi.org/10.1007/s00138-017-0887-6"
+  exp: cbl
+- title: "Monocular 3D Facial Shape Reconstruction from a Single 2D Image with Coupled-Dictionary Learning and Sparse Coding"
+  authors: "P. Dou, Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  venue: "Pattern Recognition"
+  year: 2018
+  url: "https://doi.org/10.1016/j.patcog.2018.03.002"
+  exp: cbl
+- title: "Facial 3D Model Registration under Occlusions with SensiblePoints-based Reinforced Hypothesis Refinement"
+  authors: "Y. Wu*, I. A. Kakadiaris"
+  venue: "IJCB"
+  year: 2017
+  url: "https://doi.org/10.1109/BTAS.2017.8272734"
+  arxiv: "https://arxiv.org/abs/1709.00531"
+  exp: cbl
+- title: "Evaluation of a 3D-aided Pose Invariant 2D Face Recognition System"
+  authors: "X. Xu, H. A. Le, P. Dou, Y. Wu*, I. A. Kakadiaris"
+  venue: "IJCB"
+  year: 2017
+  url: "https://doi.org/10.1109/BTAS.2017.8272729"
+  exp: cbl
+- title: "Rendering or Normalization? An Analysis of the 3D-aided Pose-invariant Face Recognition"
+  authors: "Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  venue: "ISBA"
+  year: 2016
+  url: "https://doi.org/10.1109/ISBA.2016.7477244"
+  exp: cbl
+- title: "Towards Fitting a 3D Dense Facial Model to a 2D Image: A Landmark-free Approach"
+  authors: "Y. Wu*, X. Xu, S. K. Shah, I. A. Kakadiaris"
+  venue: "BTAS"
+  year: 2015
+  url: "https://doi.org/10.1109/BTAS.2015.7358799"
+  exp: cbl
+- title: "Pose-robust Face Signature for Multi-view Face Recognition"
+  authors: "P. Dou, L. Zhang, Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  venue: "BTAS"
+  year: 2015
+  url: "https://doi.org/10.1109/BTAS.2015.7358788"
+  exp: cbl
+- title: "Robust 3D Face Shape Reconstruction from Single Images via Two-Fold Coupled Structure Learning and Off-the-Shelf Landmark Detectors"
+  authors: "P. Dou, Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  venue: "BMVC"
+  year: 2014
+  url: "https://bmva-archive.org.uk/bmvc/2014/papers/paper130/index.html"
+  exp: cbl
+- title: "Benchmarking 3D Pose Estimation for Face Recognition"
+  authors: "P. Dou, Y. Wu*, S. K. Shah, I. A. Kakadiaris"
+  venue: "ICPR"
+  year: 2014
+  url: "https://doi.org/10.1109/ICPR.2014.42"
+  exp: cbl

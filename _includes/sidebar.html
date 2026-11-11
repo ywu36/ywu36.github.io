@@ -1,0 +1,36 @@
+{%- comment -%} Right column on the home page. Params: posts (articles), updates {%- endcomment -%}
+{%- assign profile = site.data.profile -%}
+{%- assign granted = site.data.patents | where: "status", "granted" -%}
+{%- assign pending = site.data.patents | where: "status", "pending" -%}
+<aside class="side">
+  <div class="side-name">{{ site.author | upcase }}</div>
+  <p class="headline">{{ profile.headline }}</p>
+  <ul class="focus">{% for f in profile.focus %}<li>{{ f }}</li>{% endfor %}</ul>
+  <p class="muted">{{ profile.location }}</p>
+
+  <h3 class="side-sec"><a href="{{ '/#tab-exp' | relative_url }}" data-goto="exp">Experience</a></h3>
+  {%- for e in site.data.experience %}{% if e.sidebar %}
+  {%- assign from = e.start | slice: -4, 4 -%}
+  {%- if e.end == "Present" %}{% assign to = "now" %}{% else %}{% assign to = e.end | slice: -4, 4 %}{% endif -%}
+  {%- capture years %}{{ from }} – {{ to }}{% endcapture -%}
+  {% include side-item.html title=e.org left=e.where right=years %}
+  {%- endif %}{% endfor %}
+
+  <h3 class="side-sec">Education</h3>
+  {% include side-item.html title=profile.education.school left=profile.education.degree right=profile.education.years %}
+
+  <h3 class="side-sec"><i class="d dark key"></i><a href="{{ '/#tab-posts' | relative_url }}" data-goto="posts">Posts</a> <span>({{ include.posts.size }})</span> · <i class="d key"></i>Updates <span>({{ include.updates.size }})</span></h3>
+  {% include diamonds.html items=site.posts kind="post" %}
+
+  <h3 class="side-sec"><a href="{{ '/#tab-pubs' | relative_url }}" data-goto="pubs">Publications</a> <span>({{ site.data.publications.size }})</span></h3>
+  {% include diamonds.html items=site.data.publications kind="publication" %}
+
+  <h3 class="side-sec"><a href="{{ '/#tab-patents' | relative_url }}" data-goto="patents">Patents</a> <span>(<i class="d dark key"></i>{{ granted.size }} granted · <i class="d key"></i>{{ pending.size }} pending)</span></h3>
+  {% include diamonds.html items=site.data.patents kind="patent" %}
+
+  <h3 class="side-sec"><a href="{{ '/#tab-press' | relative_url }}" data-goto="press">Press</a> <span>({{ site.data.press.size }})</span></h3>
+  {% include diamonds.html items=site.data.press kind="press" %}
+
+  <h3 class="side-sec">Links</h3>
+  <p class="side-links">{% for l in profile.links %}<a href="{{ l.url }}">{{ l.name }}</a>{% endfor %}</p>
+</aside>

@@ -1,0 +1,20 @@
+{%- comment -%} <title>, description, canonical, Open Graph and Twitter cards. {%- endcomment -%}
+{%- capture page_title -%}{% if page.layout == "post" %}{% include entry-title.html post=page %}{% elsif page.title %}{{ page.title }}{% endif %}{%- endcapture -%}
+{%- capture desc -%}
+  {%- if page.kind == "update" -%}{{ page.content | strip_html | normalize_whitespace | truncate: 200 }}
+  {%- elsif page.excerpt -%}{{ page.excerpt | strip_html | normalize_whitespace | truncate: 200 }}
+  {%- else -%}{{ site.data.profile.headline }} · {{ site.data.profile.focus | join: " · " }}{%- endif -%}
+{%- endcapture -%}
+{%- assign canonical = page.url | absolute_url -%}
+<title>{% if page_title != "" %}{{ page_title }} — {% endif %}{{ site.title }}</title>
+<meta name="description" content="{{ desc | escape }}">
+<link rel="canonical" href="{{ canonical }}">
+<meta property="og:site_name" content="{{ site.title }}">
+<meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:title" content="{% if page_title != '' %}{{ page_title | escape }}{% else %}{{ site.title }}{% endif %}">
+<meta property="og:description" content="{{ desc | escape }}">
+<meta name="twitter:card" content="{% if page.image %}summary_large_image{% else %}summary{% endif %}">
+{%- if page.image %}
+<meta property="og:image" content="{{ page.image | absolute_url }}">
+{%- endif %}

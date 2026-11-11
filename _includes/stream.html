@@ -1,0 +1,23 @@
+{%- comment -%} Posts and updates, newest first. Posts: title, summary, cover. Updates: full text, no title or image. {%- endcomment -%}
+{%- for p in site.posts %}
+{%- assign date = p.date | date: site.date_format.long | upcase -%}
+{%- if p.kind == "update" %}
+<article class="row update">
+  <div class="kind">Update</div>
+  <div class="update-body">{{ p.content }}</div>
+  <div class="row-meta"><a href="{{ p.url | relative_url }}">{{ date }}</a></div>
+</article>
+{%- else %}
+<article class="row post-row">
+  <div class="kind">Post</div>
+  <div>
+    <a class="row-title stretched" href="{{ p.url | relative_url }}">{{ p.title }}</a>
+    <p class="row-ex">{{ p.excerpt | strip_html | normalize_whitespace | truncate: 200 }}</p>
+    <div class="row-meta">{{ date }}{% if p.tags.size > 0 %}<span class="dot">•</span>{{ p.tags | join: ", " }}{% endif %}</div>
+  </div>
+  {% assign tone = forloop.index | modulo: 4 %}{% include cover.html post=p class="thumb" tone=tone %}
+</article>
+{%- endif %}
+{%- else %}
+<p class="empty">No posts yet.</p>
+{%- endfor %}

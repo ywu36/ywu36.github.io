@@ -1,0 +1,21 @@
+{%- comment -%} Experience list. Each entry shows the publications/patents tied to it (by `exp` key). {%- endcomment -%}
+{%- for e in site.data.experience %}
+{%- assign pubs = site.data.publications | where: "exp", e.key -%}
+{%- assign pats = site.data.patents | where: "exp", e.key -%}
+{%- assign granted = pats | where: "status", "granted" -%}
+{%- assign pending = pats | where: "status", "pending" -%}
+<article class="row">
+  <span class="row-title">{{ e.org }}</span>
+  <div class="row-sub">{{ e.role }}</div>
+  {% if e.desc %}<p class="row-ex">{{ e.desc }}</p>{% endif %}
+  {%- if pubs.size > 0 %}
+  <div class="stat"><a href="{{ '/#tab-pubs' | relative_url }}" data-goto="pubs">Publications</a> <span>({{ pubs.size }})</span></div>
+  {% include diamonds.html items=pubs kind="publication" %}
+  {%- endif %}
+  {%- if pats.size > 0 %}
+  <div class="stat"><a href="{{ '/#tab-patents' | relative_url }}" data-goto="patents">Patents</a> <span>({% if granted.size > 0 %}{{ granted.size }} granted{% endif %}{% if granted.size > 0 and pending.size > 0 %} · {% endif %}{% if pending.size > 0 %}{{ pending.size }} pending{% endif %})</span></div>
+  {% include diamonds.html items=pats kind="patent" %}
+  {%- endif %}
+  <div class="row-meta">{{ e.start }} – {{ e.end | upcase }}<span class="dot">•</span>{{ e.where | upcase }}</div>
+</article>
+{%- endfor %}

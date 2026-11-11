@@ -1,0 +1,10 @@
+{%- comment -%}
+  Content-Security-Policy. Same-origin only, plus exactly what a page needs:
+  giscus (comments) on posts with comments on; jsDelivr (MathJax) on pages with `math: true`.
+  Inline <style>/style="" is allowed (MathJax and giscus inject styles); inline <script> is not.
+  Requires flags.html.
+{%- endcomment -%}
+{%- capture ext_script -%}{% if comments_on %} https://giscus.app{% endif %}{% if page.math %} https://cdn.jsdelivr.net{% endif %}{%- endcapture -%}
+{%- capture ext_style -%}{% if comments_on %} https://giscus.app{% endif %}{%- endcapture -%}
+{%- capture ext_font -%}{% if page.math %} https://cdn.jsdelivr.net{% endif %}{%- endcapture -%}
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'{{ ext_script }}; style-src 'self' 'unsafe-inline'{{ ext_style }}; font-src 'self'{{ ext_font }}; img-src 'self' data:; frame-src {% if comments_on %}https://giscus.app{% else %}'none'{% endif %}; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">

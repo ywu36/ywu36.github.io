@@ -1,0 +1,9 @@
+{%- comment -%} Share row: X, LinkedIn, copy link (handled in site.js). {%- endcomment -%}
+{%- assign share_url = page.url | absolute_url | url_encode -%}
+{%- capture share_text -%}{% if page.title != "" %}{{ page.title }}{% else %}{{ page.content | strip_html | normalize_whitespace | truncate: 180 }}{% endif %}{%- endcapture -%}
+<div class="share">
+  <span class="label">Share</span>
+  <a href="https://x.com/intent/post?url={{ share_url }}&amp;text={{ share_text | strip | url_encode }}">X</a>
+  <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url }}">LinkedIn</a>
+  <button type="button" class="link-button" data-copy="{{ page.url | absolute_url }}">Copy link</button>
+</div>

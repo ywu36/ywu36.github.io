@@ -1,0 +1,40 @@
+# ─── Site ──────────────────────────────────────────────────────────────
+# Content (bio, links, CV data) lives in _data/. This file holds site settings only.
+title: Rein (Yuhang) Wu
+author: Rein (Yuhang) Wu
+url: "https://ywu36.github.io"   # live address; used by link previews, share links, RSS
+baseurl: ""                      # "" for <user>.github.io; "/<repo>" for a project site
+timezone: America/New_York
+
+# ─── Formats ───────────────────────────────────────────────────────────
+date_format:
+  long: "%b %-d, %Y"   # Jan 20, 2026
+  short: "%b %-d"      # Jan 20
+  month: "%b %Y"       # Jan 2026
+words_per_minute: 220
+patent_url: "https://patents.google.com/patent/"
+
+# ─── Comments (giscus → GitHub Discussions) ────────────────────────────
+# On when repo, repo_id and category_id are all set. Off for one post: `comments: false`.
+giscus:
+  repo: "ywu36/ywu36.github.io"
+  repo_id: ""        # from https://giscus.app (data-repo-id)
+  category: "Comments"
+  category_id: ""    # from https://giscus.app (data-category-id)
+
+# ─── Third-party scripts (pinned + integrity-checked) ──────────────────
+mathjax:
+  src: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"
+  integrity: "sha384-AHAnt9ZhGeHIrydA1Kp1L7FN+2UosbF7RQg6C+9Is/a7kDpQ1684C2iH2VWil6r4"
+
+# ─── Build ─────────────────────────────────────────────────────────────
+defaults:
+  - scope: { type: posts }
+    values: { layout: post }
+permalink: /posts/:year/:month/:title/
+excerpt_separator: "<!--more-->"
+markdown: kramdown
+kramdown:
+  input: GFM
+  math_engine: mathjax
+exclude: [README.md, Gemfile, Gemfile.lock, scripts, vendor]

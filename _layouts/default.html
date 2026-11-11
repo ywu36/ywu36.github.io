@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% include head.html %}
+</head>
+<body>
+{% unless page.hide_topbar %}{% include topbar.html %}{% endunless %}
+{{ content }}
+<footer class="foot">© {{ site.time | date: "%Y" }} {{ site.author }}</footer>
+</body>
+</html>

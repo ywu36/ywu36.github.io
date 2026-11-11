@@ -1,0 +1,15 @@
+{% include flags.html %}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% include csp.html %}
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="icon" href="data:,">
+{% include seo.html %}
+<link rel="preload" href="{{ '/assets/fonts/eb-garamond-latin-400-normal.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+<link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}">
+<script src="{{ '/assets/js/site.js' | relative_url }}" defer></script>
+{%- if page.math %}
+<script src="{{ '/assets/js/mathjax-config.js' | relative_url }}"></script>
+<script src="{{ site.mathjax.src }}" integrity="{{ site.mathjax.integrity }}" crossorigin="anonymous" defer></script>
+{%- endif %}
