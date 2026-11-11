@@ -128,11 +128,13 @@ button { font: inherit; }
 
 /* Stream: post rows (whole row clickable) and updates */
 .kind { margin-bottom: 6px; letter-spacing: .1em; color: var(--accent); }
-.post-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 20px; align-items: center; transition: background .15s; }
-.post-row .kind { grid-column: 1 / -1; margin-bottom: -12px; }
-.post-row:hover { background: color-mix(in srgb, var(--ink) 3%, transparent); }
-.post-row:hover .row-title { color: var(--accent); }
+.clickable { position: relative; transition: background .15s; }
+.clickable:hover { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+.clickable:hover .row-title, .clickable:hover .row-meta a { color: var(--accent); opacity: 1; }
 .stretched::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+.clickable .update-body a { position: relative; z-index: 2; color: var(--accent); }   /* links in text stay clickable */
+.post-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 20px; align-items: center; }
+.post-row .kind { grid-column: 1 / -1; margin-bottom: -12px; }
 .thumb { aspect-ratio: 3 / 2; }
 .update-body p { margin: 0 0 .7em; }
 

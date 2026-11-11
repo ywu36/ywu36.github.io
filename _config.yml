@@ -20,7 +20,7 @@ giscus:
   repo: "ywu36/ywu36.github.io"
   repo_id: "R_kgDOVrCSlg"
   category: "Announcements"   # GitHub default category (only maintainers can start threads)
-  category_id: ""    # from https://giscus.app (data-category-id)
+  category_id: "DIC_kwDOVrCSls4DK6Z4"
 
 # ─── Third-party scripts (pinned + integrity-checked) ──────────────────
 mathjax:

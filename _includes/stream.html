@@ -1,14 +1,17 @@
-{%- comment -%} Posts and updates, newest first. Posts: title, summary, cover. Updates: full text, no title or image. {%- endcomment -%}
+{%- comment -%}
+  Posts and updates, newest first; the whole row opens the entry (.clickable + .stretched link).
+  Posts: title, summary, cover. Updates: full text, no title or image.
+{%- endcomment -%}
 {%- for p in site.posts %}
 {%- assign date = p.date | date: site.date_format.long | upcase -%}
 {%- if p.kind == "update" %}
-<article class="row update">
+<article class="row update clickable">
   <div class="kind">Update</div>
   <div class="update-body">{{ p.content }}</div>
-  <div class="row-meta"><a href="{{ p.url | relative_url }}">{{ date }}</a></div>
+  <div class="row-meta"><a class="stretched" href="{{ p.url | relative_url }}">{{ date }}</a></div>
 </article>
 {%- else %}
-<article class="row post-row">
+<article class="row post-row clickable">
   <div class="kind">Post</div>
   <div>
     <a class="row-title stretched" href="{{ p.url | relative_url }}">{{ p.title }}</a>
