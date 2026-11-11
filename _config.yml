@@ -13,6 +13,7 @@ date_format:
   month: "%b %Y"       # Jan 2026
 words_per_minute: 220
 patent_url: "https://patents.google.com/patent/"
+og_image: /assets/img/og-default.png   # default link-preview image (1200x630) for pages without one
 
 # ─── Comments (giscus → GitHub Discussions) ────────────────────────────
 # On when repo, repo_id and category_id are all set. Off for one post: `comments: false`.
