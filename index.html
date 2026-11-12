@@ -10,13 +10,15 @@ hide_topbar: true
   <div class="cols">
     <section>
       <nav class="tabs" role="tablist">
-        <button type="button" role="tab" data-tab="posts" aria-selected="true">Posts</button>
-        <button type="button" role="tab" data-tab="exp">Experience</button>
+        <button type="button" role="tab" data-tab="research">Research</button>
         <button type="button" role="tab" data-tab="pubs">Publications</button>
         <button type="button" role="tab" data-tab="patents">Patents</button>
         <button type="button" role="tab" data-tab="press">Press</button>
+        <button type="button" role="tab" data-tab="exp">Experience</button>
+        <button type="button" role="tab" data-tab="posts" aria-selected="true">Posts</button>
       </nav>
       <div class="tab" id="tab-posts" role="tabpanel">{% include stream.html %}</div>
+      <div class="tab" id="tab-research" role="tabpanel" hidden>{% include cv-research.html %}</div>
       <div class="tab" id="tab-exp" role="tabpanel" hidden>{% include cv-experience.html %}</div>
       <div class="tab" id="tab-pubs" role="tabpanel" hidden>{% include cv-publications.html %}</div>
       <div class="tab" id="tab-patents" role="tabpanel" hidden>{% include cv-patents.html %}</div>

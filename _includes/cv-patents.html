@@ -6,7 +6,7 @@
 <h3 class="sub">{% if status == "granted" %}Granted U.S. Patents{% else %}Pending Patents{% endif %} <span>({{ items.size }})</span></h3>
 {%- for p in items %}
 <article class="row">
-  {% if p.id != "" %}<a class="row-title" href="{{ site.patent_url }}{{ p.id }}">{{ p.title }}</a>{% else %}<span class="row-title">{{ p.title }}</span>{% endif %}
+  {% if p.url or p.id != "" %}<a class="row-title" href="{% if p.url %}{{ p.url }}{% else %}{{ site.patent_url }}{{ p.id }}{% endif %}">{{ p.title }}</a>{% else %}<span class="row-title">{{ p.title }}</span>{% endif %}
   {% if p.summary %}<p class="row-sum">{{ p.summary }}</p>{% endif %}
   <div class="row-meta">{{ p.number }}<span class="dot">•</span>{{ p.date | upcase }}<span class="dot">•</span>{{ p.org | upcase }}</div>
 </article>

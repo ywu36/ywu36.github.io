@@ -1,11 +1,13 @@
 # Source: resume. Newest first within each status.
 # status   granted | pending
 # id       Google Patents id ("" = no link)
+# url      optional link used instead of Google Patents (for grants Google has not indexed yet)
 # exp      Experience entry it belongs to (key in experience.yml)
 # summary  short summary, shown under the title
 - status: granted
   number: "US 12,717,910 B2"
   id: "US12717910B2"
+  url: "https://patents.justia.com/patent/12717910"
   date: "Aug 2026"
   org: "VISA"
   exp: visa

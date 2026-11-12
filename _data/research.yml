@@ -1,0 +1,147 @@
+# Research themes (Research tab + /research/<key>/ pages), in display order.
+# key         page slug; research/<key>.html must exist with `research_key: <key>`
+# image       optional figure taken from one of the papers (assets/img/research/); no generated art
+# image_fit   contain (letterbox) | cover;  image_bg  letterbox colour
+# caption     figure caption with its source
+# essay       one short essay (list of paragraphs); when present it replaces background…action.
+#             an item may also be a figure: {image, caption, narrow}; set inline_figs: true to drop the top figure
+#             (image is then only the Research-tab thumbnail)
+# background  what the client needs        objective  general problem definition
+# situation   existing solutions and their limits
+# task        the specific sub-problem we attack
+# action      our solution, one bullet per idea
+# pubs        publication titles (must match _data/publications.yml)
+# patents     patent ids (must match _data/patents.yml)
+# press       press item urls (must match _data/press.yml)
+# dissertation optional {title, venue, year, url}
+- key: node-classification
+  title: "Node Classification with Constrained Labels"
+  tagline: "Reliable decisions on large graphs from a handful of trusted labels."
+  image: /assets/img/research/node-classification-smartquery.png
+  image_fit: contain
+  image_bg: "#ffffff"
+  inline_figs: true
+  essay:
+    - "At a payment network, most risk decisions are decisions about nodes in a graph: is this merchant about to default, is this account compromised, is this employee's access abnormal. Two teams at VISA faced the same limit. The security team watches tens of thousands of employees with a handful of analysts, and each alert takes a person hours to investigate. The risk team monitors merchants by the hundred million, and a case is confirmed only after an investigation closes. In both, analyst time is the scarcest resource, so labels are few, slow and expensive, and a label-hungry model is not practical in production."
+    - "The business still needs a decision for every node, and two shortcuts fail. A graph network trained on a few labels is confident about nodes it knows nothing about. And spreading labels along raw edges assumes that connected nodes share a label, which is exactly what a bad actor breaks by connecting to normal users. So the problem has three parts: which few nodes to label, which neighbors to trust, and how far a label is allowed to travel."
+    - "1) Active learning: spend each label where it changes the model most. SmartQuery (the figure below) first uses what is reliable from the start, the graph structure: degree and PageRank shortlist a small pool of central candidates, once. Then, for every candidate and every label it could receive, we ask how much the uncertainty of the whole graph would drop. Retraining the network for each answer is too slow, so label propagation stands in for it. The drop is weighted by the model's current class probabilities, and the candidate with the largest expected drop goes to the expert. The structural shortlist alone improved accuracy by 16%, and the method stays competitive with only a few labels per class."
+    - image: /assets/img/research/node-classification-smartquery.png
+      caption: "SmartQuery: candidates are pooled once from graph structure; in each round, label propagation estimates how much labeling each candidate would reduce the model's uncertainty, and the best one is sent to the expert. Figure 1 of Li, Wu et al., SmartQuery, 2022."
+    - "2) Peer grouping: decide who a node should be compared with. Peers are learned from behavior, without annotation: each entity is described by what it accesses, rare activity is weighted more than common activity, and nearest neighbors are computed every month. Only neighbors that keep a stable rank across months count as peers, and the largest gap in that ranking marks where the peer group ends. When there are several kinds of relation, each one is a graph layer. The layers are merged with learned weights, and those weights are updated from the few nodes an analyst confirms."
+    - image: /assets/img/research/node-classification-peers.png
+      narrow: true
+      caption: "Peer consistency: an employee's nearest neighbors are ranked every month (top), and only those that stay close across months are kept as peers (bottom). FIGS. 2E and 2F of U.S. Patent 11,481,485."
+    - image: /assets/img/research/node-classification-multilayer.png
+      narrow: true
+      caption: "Peer context from a multi-layer graph: relation layers are merged with learned weights, each node is scored against its peers, and analyst feedback refines the weights. FIG. 1 of U.S. Patent 11,711,391."
+    - "3) Trusted seeds and label growing. A confirmed node is a trusted seed. Its label grows outward on the learned manifold, not along raw edges. In embedding space, new training examples are synthesized by mixing a seed anomaly with sampled nodes, with an adaptive mixing ratio, and the model is trained around an anomaly prototype and a normal prototype (GADAM). On the graph itself, ALT learns a weight for every edge and splits the graph into two complementary parts, so a label spreads across edges that agree with it and stops at edges that do not. This improved existing graph networks by 7 to 15% where connected nodes tend to differ, without hurting them where connected nodes agree."
+    - image: /assets/img/research/node-classification-alt.png
+      caption: "ALT: an augmenter learns a weight for every edge and splits the graph into two complementary graphs; two networks read them and their signals are combined. Figure 2 of Xu, Chen, Zhou, Wu et al., KDD 2023."
+  pubs:
+    - "SmartQuery: An Active Learning Framework for Graph Neural Networks through Hybrid Uncertainty Reduction"
+    - "Node Classification Beyond Homophily: Towards a General Solution"
+    - "Graph Anomaly Detection with Adaptive Node Mixup"
+    - "Rethinking Personalized Federated Learning with Clustering-Based Dynamic Graph Propagation"
+  patents: [US20250190804A1, EP4602523A1, WO2022066587A1]
+- key: adversarial-learning
+  title: "Adversarial Learning in the Wild"
+  tagline: "Attacking and defending deployed fraud and biometric models the way real adversaries would."
+  image: /assets/img/research/adversarial-learning-light-projection.png
+  image_fit: contain
+  image_bg: "#ffffff"
+  inline_figs: true
+  essay:
+    - "A payment network approves or declines every transaction in about a millisecond, more than a hundred billion times a year, and the model that makes this call is the main barrier against fraud. Fraudsters adapt to it: they probe, learn what gets approved, and change their behavior. Identity is the second front. As face, voice and fingerprint replace passwords for app login and payment, which VISA offered to banks and merchants through Visa ID Intelligence, the biometric model becomes the lock on the account. A fooled fraud model is a financial loss; a fooled identity model is an account takeover. For VISA, adversarial robustness is a core risk question, not a research curiosity."
+    - "Most adversarial machine learning perturbs pixels in a file. A deployed model is attacked differently: through the transactions a fraudster is able to make, or through the camera a face is presented to. The owner of such a model needs to see how it fails before an attacker does, and needs a defense that still works when the attacker knows it is there. No static defense survives unlimited tries. The practical goal is cost: every successful attack should need more knowledge, more attempts and a larger perturbation."
+    - "1) Attack on the VISA fraud detection model. We built the first adversarial sandbox for VISA Research's fraud detection team (U.S. Patent 11,244,321). A reinforcement-learning agent plays a fraudster holding a compromised account. Its actions are real choices, which merchant and what amount, inside a simulated time window. Its state is the account's history, including which earlier attempts were approved or declined."
+    - image: /assets/img/research/adversarial-learning-sandbox.png
+      narrow: true
+      caption: "One step of the sandbox: the agent picks a transaction, the fraud model scores it, and the outcome becomes the agent's reward. FIG. 3 of U.S. Patent 11,244,321."
+    - "Each synthesized transaction is scored by the fraud model itself: if the model misses it, the agent earns the amount; if the model catches it, the agent earns nothing. Trained on the discounted sum of these rewards, the agent learns sequences, not single transactions, and goes to the weakest merchants first. Several agents with different goals can run together. Reading back the highest-reward sequences shows where the model is blind. Run against the VISA Deep Authorization model, which prevents $30B in fraud a year, the sandbox evaluated worst-case scenarios and found multiple blind spots."
+    - "2) Attack on a physical face recognition system. Here the attacker controls what the camera sees, not the image file. The setup is a webcam and an ordinary projector, calibrated once for position and color. A pattern is optimized against one averaged image of the attacker, which makes it robust to small head movements and fast enough for real time, and is then projected onto the attacker's own face."
+    - image: /assets/img/research/adversarial-learning-light-projection.png
+      caption: "Light-projection attack: a camera captures the tester, a light pattern is computed from the tester and target images, and a projector casts it onto the face. FIG. 1 of U.S. Patent 11,163,985; method in Nguyen, Arora, Wu, Yang, CVPR Workshops 2020."
+    - "In live tests with 50 subjects, the attack impersonated a chosen target in 23 of 25 attempts against an open-source system, and in 15 of 25 against a commercial system with no access to its internals. Evading recognition succeeded in 10 of 10 and 7 of 10."
+    - "3) Defense: a hold-out dataset and graph models. Every decision is checked against data the attacker cannot see. For biometric login, this is the user's enrolled samples, extended at enrollment with learned perturbations. An impersonation built from public photos is compared with this hidden set and caught, even if the enrollment data later leaks. The latent neighborhood graph applies the same idea to any classifier. It keeps a reference set of genuine and adversarial examples, retrieves the input's neighbors from it, learns how they connect, and classifies the whole neighborhood with a graph attention network."
+    - image: /assets/img/research/adversarial-learning-lng.png
+      caption: "Latent neighborhood graph: the input (blue) is embedded, its genuine (black) and adversarial (red) neighbors are retrieved from a hold-out reference set, and the resulting graph is classified. Figure 1 of Abusnaina, Wu et al., ICCV 2021."
+    - "It detects attacks it was never trained on, and stays above 80% against an attacker who knows the defense."
+    - "4) Defense: dynamic targeted perturbation. The second defense turns the attacker's own tool around. The input is first perturbed once at random, so the attacker cannot predict the exact function being checked. Then, for the input, its perturbed copy and its nearest reference example, we compute the targeted perturbation an attacker would use: the gradient direction that pushes each one toward its most likely classes."
+    - image: /assets/img/research/adversarial-learning-agd.png
+      caption: "Adversarial gradient directions (v) for an adversarial input (left) and a genuine one (right): the query x, its randomly perturbed copy, and the nearest reference example. The directions agree only for the genuine input. Figure 1 of Wu et al., AAAI 2021."
+    - "For a genuine input these directions agree. For an adversarial input they do not, because it sits just across a decision boundary it does not belong to. One random perturbation and one reference example reach about 98% detection AUC across five attack types. To get through, an attacker has to beat the classifier, the random check and a reference set it cannot see, all at once, with a perturbation small enough to pass. That is the larger budget."
+    - "The sandbox was delivered to VISA's fraud detection team. The direction produced nine patents covering the sandbox, light-projection testing, and the biometric and neighborhood-based defenses."
+  pubs:
+    - "Adversarial Light Projection Attacks on Face Recognition Systems: A Feasibility Study"
+    - "Beating Attackers at Their Own Games: Adversarial Example Detection Using Adversarial Gradient Directions"
+    - "Adversarial Example Detection Using Latent Neighborhood Graph"
+  patents: [US11244321B2, US11741475B2, US11163985B2, US11620854B2, US11496466B2, US12069047B2, US12124947B2, US20250005358A1, US20230334332A1]
+- key: anomaly-detection
+  title: "Anomaly Detection on Terabytes of Financial Data"
+  tagline: "From raw streams to anomaly-event snippets, then to classification."
+  image: /assets/img/research/anomaly-detection-event2graph.png
+  image_fit: contain
+  image_bg: "#ffffff"
+  inline_figs: true
+  essay:
+    - "A payment network produces terabytes of transaction and activity logs. Anomalies are rare, and what counts as normal keeps moving. Scoring every raw point against one global model does not hold up at this scale: the same spike is routine for one merchant and alarming for another, and a system-wide shift looks like a million anomalies at once. Three things shape the method: the scale, the variety of anomalies, and the assumption that every series depends on every other."
+    - "1) Scale forces a trade-off. A detector that is accurate on one series but expensive per entity cannot watch 150M merchants, and comparing every entity with every other does not scale either. So we give up one global model and score each entity only against its peers. The peer graph is built to stay sparse: an edge exists only between entities that share static attributes, and its weight is the distance between their recent time series. Each entity then gets a small peer group. When its behavior changes, we check the peers first. If their risk scores moved together, the change is a systematic shift and the alert is dropped; if only this entity moved, it is a true anomaly, caught early. The multi-layer peer technique from our node classification work is reused here (the figure below): several relation layers are merged into one peer graph with learned weights, and analyst feedback refines them."
+    - image: /assets/img/research/node-classification-multilayer.png
+      narrow: true
+      caption: "Peer context from a multi-layer graph: relation layers are merged with learned weights, each node is scored against its peers, and analyst feedback refines the weights. FIG. 1 of U.S. Patent 11,711,391."
+    - "2) Anomalies come in many kinds, and no single detector catches them all. A change in frequency, a change in correlation, an abrupt value change and a slow drift leave different traces. A method that is good at one is weak at another, so the choice of method has to be made per case, automatically."
+    - "We do this in two steps. First we synthesize the data (the figure below). A base signal is built in the frequency domain, noise is added in both frequency and time so it looks real, and labeled outliers of five types are inserted: global point, contextual point, shapelet, seasonal and trend. Because we generate them, we know exactly where each one is and what type it is. Then a meta-learner is trained on this data. It reads a query segment next to a clean baseline, decides which outlier types are present, and ranks the detectors for each type, so the right method is selected without a person in the loop. FMUAD follows the same reasoning inside one model, with separate modules for value, frequency and correlation changes; it improved F1 by 17% on average over earlier forecast-based detectors."
+    - image: /assets/img/research/anomaly-detection-synthesis.png
+      caption: "Synthesized training data: 2,000 base signals, expanded into clean segments and segments with one or two types of labeled anomalies, with six generated examples. FIG. 9 of U.S. Patent Application 2024/0412098."
+    - "3) Breaking the dependency assumption. Recurrent forecasters assume that every series depends on every other series, and that this dependency never changes. In real systems the dependencies are partial and they shift. Event2Graph (the figure below) drops the assumption. It cuts each series into short windows, finds the patterns that repeat, and merges similar patterns across series into a shared set of events. Series and events become the two node types of a dynamic bipartite graph; an edge says that this event happened on this series at this time, so two series are related only while they share events."
+    - image: /assets/img/research/anomaly-detection-event2graph.png
+      caption: "Event2Graph: recurring short patterns (events I–IV) and the series they occur on (1–3) form a bipartite graph. At normal times the predicted links (green, dashed) match the observed ones (red); at t90 they do not, and the mismatch is the anomaly. Figure 1 of Wu et al., Event2Graph, 2022."
+    - "Where, when and which are stored separately, so the graph grows linearly with the number of series, not exponentially. A temporal graph network with per-node memory is trained, without labels, to predict the next edges. The predicted event is then projected back into the original signal and compared with what actually arrived. The mismatch is the anomaly score, and it comes with a readable reason: which series, which expected pattern, what showed up instead."
+    - "When the data cannot leave its owner, the model goes to the data. With federated learning and secure multi-party computation, a payment network and its banks train one detector without any bank revealing its private account flags. Precision-recall improved from 0.6 to 0.7, and the entry received a special recognition prize in the US–UK privacy-enhancing technologies challenge."
+    - "The work shipped. At VISA it led to a merchant credit risk model that continuously monitors 150M merchants worldwide, and to an insider-risk model covering 20K+ employees that raised the detection rate by 300%."
+  pubs:
+    - "Event2Graph: Event-driven Bipartite Graph for Multivariate Time Series Forecasting and Anomaly Detection"
+    - "Forecast-based Multi-aspect Framework for Multivariate Time-series Anomaly Detection"
+    - "Semi-supervised Context Discovery for Peer-Based Anomaly Detection in Multi-layer Networks"
+    - "Privacy-Preserving Financial Anomaly Detection via Federated Learning & Multi-Party Computation"
+  patents: [US12717910B2, US12481999B2, US12118448B2, US11711391B2, US11481485B2, US20240152735A1, US20220398466A1, US20240412098A1, WO2025010300A1, EP4352660A1, WO2023014567A1, US20240242120A1]
+  press: ["https://www.nist.gov/itl/applied-cybersecurity/privacy-engineering/collaboration-space/challenges/us-uk-pets-prize"]
+- key: face-recognition
+  title: "Unconstrained Face Recognition in the Wild"
+  tagline: "Learning an identity space that holds across pose, light and occlusion, from detection to recognition."
+  image: /assets/img/research/face-recognition-godp.png
+  image_fit: contain
+  image_bg: "#ffffff"
+  inline_figs: true
+  essay:
+    - "Before 2018, most face recognition was built for cooperative, near-frontal faces, and there it looked solved. Turn the head 90° or change the light, and accuracy fell apart. The trouble is in the embedding: two samples of the same person at different poses sit farther apart than two different people at the same pose. The nuisance factor outweighs the signal. The same structure appears in many representation problems, where a small change in the input can flip the label while very different inputs can share one. The representation has to be organized by the label, not by the raw input."
+    - "We spent five years, 2013 to 2018, on every stage that feeds that space: detection, 3D reconstruction, alignment, and the recognition template. Along the way we learned that the two obvious shortcuts don't work. Regressing coordinates or pose straight from the input is too coarse and falls over under occlusion. Asking one embedding to be invariant to everything at once is more than the data can support."
+    - "So we built supervised attention, the first in biometrics, before the Transformer made attention mainstream. The idea is simple: show the network where to look, and supervise that \"where\" directly instead of hoping it emerges."
+    - "1) Face alignment. GoDP (the figure below) predicts a confidence map for each landmark, trained against the true pixel location. Shallow layers propose candidates, deep layers clean them up, and a distance-aware loss punishes false alarms near the target. Those supervised maps then act as attention at every stage. Better alignment meant a cleaner, pose-normalized face, and rank-1 identification went up 44%."
+    - image: /assets/img/research/face-recognition-godp.png
+      caption: "Supervised attention in GoDP: shallow layers propose landmark candidates, deep layers refine them; the confidence maps (bottom) show background false alarms (red circles) suppressed stage by stage. Figure 2.3 of Y. Wu, Ph.D. dissertation, University of Houston, 2018."
+    - "2) Occlusion-aware guided attention. When the head turns, part of the face simply isn't there. A fitted 3D model tells us which regions are hidden, and that mask guides the aggregation (OGCTL / MGCTL): every visible patch casts a vote for who this is, and hidden patches stay quiet. The embedding got more than 10x smaller at the same accuracy, fast enough to match over a million templates per second on one CPU core."
+    - image: /assets/img/research/face-recognition-mgctl.png
+      narrow: true
+      caption: "Mask-guided template learning: an occlusion mask (m) gates each local face representation, so only visible patches contribute to the template t. Figure 4.6 of Y. Wu, Ph.D. dissertation, University of Houston, 2018."
+    - "The work did not stop at papers. We took it from research to product: a full-stack 3D face recognition system, delivered to the U.S. Department of Homeland Security."
+  dissertation:
+    title: "Face Recognition in Unconstrained Conditions: Improving Face Alignment and Constructing a Pose-Invariant Compact Biometric Template"
+    venue: "Ph.D. Dissertation, University of Houston"
+    year: 2018
+    url: "https://hdl.handle.net/10657/4417"
+  pubs:
+    - "GoDP: Globally Optimized Dual Pathway Deep Network Architecture for Facial Landmark Localization In-the-Wild"
+    - "3-D Face Alignment Using a Convolutional Point-Set Representation"
+    - "Evaluation of a 3D-aided Pose Invariant 2D Face Recognition System"
+    - "OGCTL: Occlusion-guided Compact Template Learning for Ensemble Deep Network-based Pose-invariant Face Recognition"
+    - "Facial 3D Model Registration under Occlusions with SensiblePoints-based Reinforced Hypothesis Refinement"
+    - "Annotated Face Model-based Alignment: A Robust Landmark-free Pose Estimation Approach for 3D Model Registration"
+    - "Monocular 3D Facial Shape Reconstruction from a Single 2D Image with Coupled-Dictionary Learning and Sparse Coding"
+    - "Towards Fitting a 3D Dense Facial Model to a 2D Image: A Landmark-free Approach"
+    - "Pose-robust Face Signature for Multi-view Face Recognition"
+    - "Rendering or Normalization? An Analysis of the 3D-aided Pose-invariant Face Recognition"
+    - "Robust 3D Face Shape Reconstruction from Single Images via Two-Fold Coupled Structure Learning and Off-the-Shelf Landmark Detectors"
+    - "Benchmarking 3D Pose Estimation for Face Recognition"
+  press: ["https://bti.egr.uh.edu/research/kakadiaris-edge"]
+  patents: []

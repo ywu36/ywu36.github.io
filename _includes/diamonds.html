@@ -15,7 +15,7 @@
     {%- assign light = false -%}
   {%- when "patent" -%}
     {%- capture label -%}{{ it.title }} — {{ it.number }}{% if it.status == "pending" %} (pending){% endif %}{%- endcapture -%}
-    {%- if it.id != "" -%}{%- assign href = site.patent_url | append: it.id -%}{%- else -%}{%- assign href = "" -%}{%- endif -%}
+    {%- if it.url -%}{%- assign href = it.url -%}{%- elsif it.id != "" -%}{%- assign href = site.patent_url | append: it.id -%}{%- else -%}{%- assign href = "" -%}{%- endif -%}
     {%- if it.status == "pending" -%}{%- assign light = true -%}{%- else -%}{%- assign light = false -%}{%- endif -%}
   {%- when "press" -%}
     {%- capture label -%}{{ it.title }} — {{ it.outlet }}{%- endcapture -%}

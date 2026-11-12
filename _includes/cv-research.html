@@ -1,0 +1,11 @@
+{%- comment -%} Research themes (_data/research.yml). Whole row opens /research/<key>/; shows the essay's first paragraph, else the tagline. {%- endcomment -%}
+{%- for r in site.data.research %}
+<article class="row{% if r.image %} post-row{% endif %} clickable">
+  <div>
+    <a class="row-title stretched" href="{{ '/research/' | append: r.key | append: '/' | relative_url }}">{{ r.title }}</a>
+    <p class="row-ex">{% if r.essay %}{{ r.essay.first }}{% else %}{{ r.tagline }}{% endif %}</p>
+    <div class="row-meta">{{ r.pubs.size }} PUBLICATIONS{% if r.patents.size > 0 %}<span class="dot">•</span>{{ r.patents.size }} PATENTS{% endif %}{% if r.press.size > 0 %}<span class="dot">•</span>{{ r.press.size }} PRESS{% endif %}</div>
+  </div>
+  {% if r.image %}{% include cover.html post=r class="thumb" %}{% endif %}
+</article>
+{%- endfor %}

@@ -1,0 +1,53 @@
+---
+layout: default
+---
+{%- comment -%} One research theme; content comes from _data/research.yml (page.research_key). {%- endcomment -%}
+{%- assign r = site.data.research | where: "key", page.research_key | first -%}
+<article class="post research">
+  <header class="post-head">
+    <div class="kind">Research</div>
+    <h1>{{ r.title }}</h1>
+    <p class="row-ex">{{ r.tagline }}</p>
+  </header>
+  {%- if r.image and r.inline_figs != true %}
+  <figure class="cover research-fig"><img src="{{ r.image | relative_url }}" alt="">{% if r.caption %}<figcaption>{{ r.caption }}</figcaption>{% endif %}</figure>
+  {%- endif %}
+  <div class="post-body">
+  {%- if r.essay %}
+    {%- for para in r.essay %}{% if para.image %}<figure class="essay-fig{% if para.narrow %} narrow{% endif %}"><img src="{{ para.image | relative_url }}" alt="">{% if para.caption %}<figcaption>{{ para.caption }}</figcaption>{% endif %}</figure>{% else %}<p>{{ para }}</p>{% endif %}{% endfor %}
+  {%- else %}
+    <h2>Background</h2><p>{{ r.background }}</p>
+    <h2>Objective</h2><p>{{ r.objective }}</p>
+    <h2>Situation</h2><p>{{ r.situation }}</p>
+    <h2>Task</h2><p>{{ r.task }}</p>
+    <h2>Action</h2>
+    <ul>{% for a in r.action %}<li>{{ a }}</li>{% endfor %}</ul>
+  {%- endif %}
+  </div>
+  {%- if r.dissertation %}
+  <h3 class="sub">Dissertation</h3>
+  <div class="ref"><a href="{{ r.dissertation.url }}">{{ r.dissertation.title }}</a><div class="row-meta"><b>Y. Wu</b><span class="dot">•</span>{{ r.dissertation.venue | upcase }} {{ r.dissertation.year }}</div></div>
+  {%- endif %}
+  {%- if r.pubs.size > 0 %}
+  <h3 class="sub">Publications <span>({{ r.pubs.size }})</span></h3>
+  {%- for t in r.pubs %}
+  {%- assign p = site.data.publications | where: "title", t | first %}
+  <div class="ref"><a href="{{ p.url }}">{{ p.title }}</a><div class="row-meta">{{ p.authors | replace: "Y. Wu*", "<b>Y. Wu</b>" }}<span class="dot">•</span>{{ p.venue | upcase }} {{ p.year }}{% if p.arxiv %}<span class="dot">•</span><a href="{{ p.arxiv }}">ARXIV</a>{% endif %}</div></div>
+  {%- endfor %}
+  {%- endif %}
+  {%- if r.patents.size > 0 %}
+  <h3 class="sub">Patents <span>({{ r.patents.size }})</span></h3>
+  {%- for id in r.patents %}
+  {%- assign p = site.data.patents | where: "id", id | first %}
+  <div class="ref"><a href="{% if p.url %}{{ p.url }}{% else %}{{ site.patent_url }}{{ p.id }}{% endif %}">{{ p.title }}</a><div class="row-meta">{{ p.number }}<span class="dot">•</span>{{ p.status | upcase }}<span class="dot">•</span>{{ p.date | upcase }}</div></div>
+  {%- endfor %}
+  {%- endif %}
+  {%- if r.press.size > 0 %}
+  <h3 class="sub">Press <span>({{ r.press.size }})</span></h3>
+  {%- for u in r.press %}
+  {%- assign p = site.data.press | where: "url", u | first %}
+  <div class="ref"><a href="{{ p.url }}">{{ p.title }}</a><div class="row-meta">{{ p.outlet | upcase }}<span class="dot">•</span>{{ p.kind | upcase }}<span class="dot">•</span>{% if p.shown %}{{ p.shown }}{% else %}{{ p.date | date: site.date_format.month | upcase }}{% endif %}</div></div>
+  {%- endfor %}
+  {%- endif %}
+  <a class="home-link" href="{{ '/#tab-research' | relative_url }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Back to research</a>
+</article>

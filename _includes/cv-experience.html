@@ -1,9 +1,10 @@
-{%- comment -%} Experience list. Each entry shows the publications/patents tied to it (by `exp` key). {%- endcomment -%}
+{%- comment -%} Experience list. Each entry shows the publications/patents/press tied to it (by `exp` key). {%- endcomment -%}
 {%- for e in site.data.experience %}
 {%- assign pubs = site.data.publications | where: "exp", e.key -%}
 {%- assign pats = site.data.patents | where: "exp", e.key -%}
 {%- assign granted = pats | where: "status", "granted" -%}
 {%- assign pending = pats | where: "status", "pending" -%}
+{%- assign press = site.data.press | where: "exp", e.key | sort: "date" | reverse -%}
 <article class="row exp-row">
   {% if e.logo %}<img class="org-logo" src="{{ e.logo | relative_url }}" alt="{{ e.org }} logo" width="48" height="48" loading="lazy">{% else %}<span class="org-logo"></span>{% endif %}
   <div>
@@ -17,6 +18,10 @@
   {%- if pats.size > 0 %}
   <div class="stat"><a href="{{ '/#tab-patents' | relative_url }}" data-goto="patents">Patents</a> <span>({% if granted.size > 0 %}{{ granted.size }} granted{% endif %}{% if granted.size > 0 and pending.size > 0 %} · {% endif %}{% if pending.size > 0 %}{{ pending.size }} pending{% endif %})</span></div>
   {% include diamonds.html items=pats kind="patent" %}
+  {%- endif %}
+  {%- if press.size > 0 %}
+  <div class="stat"><a href="{{ '/#tab-press' | relative_url }}" data-goto="press">Press</a> <span>({{ press.size }})</span></div>
+  {% include diamonds.html items=press kind="press" %}
   {%- endif %}
     <div class="row-meta">{{ e.start }} – {{ e.end | upcase }}<span class="dot">•</span>{{ e.where | upcase }}</div>
   </div>
