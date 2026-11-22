@@ -1,0 +1,751 @@
+---
+title: "Structure over Scale: Mixing Odours in a Pony Network like the Human Receptors"
+date: 2026-11-22
+summary: "Most things we smell are mixtures, and in the DREAM olfactory mixtures challenge no method reliably beat simply averaging each molecule's odour words from open-POM. We present Pony, a graph neural network that mixes odours like the nose, letting a few dominant molecules outweigh the rest; 18 times smaller than open-POM, it outperforms it by 37% and 13% on the challenge's two test sets and by 18% in cross-validation."
+tags: [olfaction, graph neural network, metric learning]
+featured: true
+math: true
+comments: true
+thumb: /assets/img/structure-over-scale/og.png
+og_image: /assets/img/structure-over-scale/og.png
+---
+<div class="abstract"><p><b>Abstract.</b> Computers can now see and hear, but they still struggle to smell: smells are costly to label, and we have no shared language to describe them. Most things we smell are mixtures, and in the DREAM olfactory mixtures challenge, an open international competition, no method reliably beat a simple recipe: describe each molecule in odour words with the Principal Odor Map (open-POM), then average. Our insight is that mixing should follow how the nose combines odours: components add in a receptor-like code, and a few dominant ones outweigh the rest. We present Pony, a graph neural network trained on single molecules, with only its mixture layer then fine-tuned on DREAM; it is 18 times smaller than open-POM yet outperforms it by 37% and 13% on the DREAM challenge's T46 and V50 test sets and by 18% in cross-validation. Pony sums unit molecule directions in its hidden layer, weights each molecule by a strength read from its atom attention, and gives each mixture a learned length, so similarity depends on both direction and length. It also beats all prior methods we evaluated.</p></div>
+
+<!--more-->
+<style>
+/* Paper styles, scoped to this post. Figures keep a white panel so they read in dark mode too. */
+.post-body .abstract{margin:0 0 1.4em;padding:14px 18px;background:var(--rule);border-left:3px solid var(--muted);font-size:.92em}
+.post-body .abstract p{margin:0}
+.post-body h2.session{margin-top:2.2em;padding-top:.5em;border-top:1.6px solid var(--ink)}
+.post-body h4{margin:1.2em 0 .2em;font:600 1em var(--serif)}
+.post-body .eq{overflow-x:auto;margin:10px 0;padding:2px 0}
+.post-body figure{margin:1.5em 0;padding:0}
+.post-body .wide{overflow-x:auto;margin:1em 0}
+.post-body figure svg{display:block;width:100%;height:auto;background:#fff;color:#111;border-radius:3px;font-family:var(--serif)}
+.post-body figcaption{font:14px/1.5 var(--sans);color:var(--muted);margin-top:8px}
+.post-body figcaption b{font-weight:600}
+.post-body table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px;font-variant-numeric:tabular-nums;margin:6px 0}
+.post-body caption{caption-side:top;text-align:left;font:14px/1.5 var(--sans);color:var(--muted);padding-bottom:6px}
+.post-body thead tr{border-top:1.6px solid var(--ink);border-bottom:.8px solid var(--ink)}
+.post-body tbody tr:last-child{border-bottom:1.6px solid var(--ink)}
+.post-body th,.post-body td{padding:5px 8px;text-align:right;white-space:nowrap;border-bottom:0}
+.post-body th{font-weight:600}
+.post-body th:first-child,.post-body td:first-child{text-align:left;white-space:normal}
+.post-body tr.sep td{border-top:.8px solid var(--rule)}
+.post-body td.b{font-weight:600}
+.post-body .note{font-size:.85em;color:var(--muted)}
+.post-body .refs{list-style:none;padding-left:0}
+.post-body .refs li{padding-left:2em;text-indent:-2em;margin:0 0 .45em;font-size:.85em}
+</style>
+<figure>
+<svg viewBox="0 0 820 380" role="img" aria-label="A pony in a sunny, colourful garden lowers its head and buries its nose in a pink flower, eyes closed and smiling. A small network of connected nodes is drawn on its body and linked along its neck to its nose; scent curls rise from the flower and hearts float above its head.">
+<defs>
+  <linearGradient id="pSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset=".75" stop-color="#d9f0ff"/><stop offset="1" stop-color="#fff4d8"/></linearGradient>
+  <radialGradient id="pSun" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fffbd0"/><stop offset="0.6" stop-color="#ffd23f"/><stop offset="1" stop-color="#ffb627"/></radialGradient>
+  <radialGradient id="pGlow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fff3a0" stop-opacity=".6"/><stop offset="1" stop-color="#fff3a0" stop-opacity="0"/></radialGradient>
+  <linearGradient id="pCoat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e4ae74"/><stop offset=".55" stop-color="#cf904f"/><stop offset="1" stop-color="#a96a33"/></linearGradient>
+  <linearGradient id="pLeg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9a5e2c"/><stop offset=".55" stop-color="#e2a86a"/><stop offset="1" stop-color="#a86a35"/></linearGradient>
+  <radialGradient id="pMuscle" cx="0.5" cy="0.4" r="0.5"><stop offset="0" stop-color="#fff0d6" stop-opacity=".6"/><stop offset="1" stop-color="#fff0d6" stop-opacity="0"/></radialGradient>
+  <radialGradient id="pShade" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#5a3418" stop-opacity=".45"/><stop offset="1" stop-color="#5a3418" stop-opacity="0"/></radialGradient>
+  <linearGradient id="pCoatFar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b47a43"/><stop offset="1" stop-color="#8c5528"/></linearGradient>
+  <radialGradient id="pShine" cx="0.35" cy="0.3" r="0.6"><stop offset="0" stop-color="#fff2d8" stop-opacity=".55"/><stop offset="1" stop-color="#fff2d8" stop-opacity="0"/></radialGradient>
+  <linearGradient id="pMane" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a4321"/><stop offset="1" stop-color="#4e2810"/></linearGradient>
+  <g id="pPetals"><circle cx="0" cy="-10" r="8"/><circle cx="9.5" cy="-3" r="8"/><circle cx="5.9" cy="8" r="8"/><circle cx="-5.9" cy="8" r="8"/><circle cx="-9.5" cy="-3" r="8"/></g>
+  <filter id="pAir" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <linearGradient id="pR1" gradientUnits="userSpaceOnUse" x1="772" y1="296" x2="586" y2="264"><stop offset="0" stop-color="#ff5d6c" stop-opacity=".95"/><stop offset="1" stop-color="#ff5d6c" stop-opacity=".25"/></linearGradient>
+  <linearGradient id="pR2" gradientUnits="userSpaceOnUse" x1="722" y1="278" x2="586" y2="260"><stop offset="0" stop-color="#9b6bff" stop-opacity=".95"/><stop offset="1" stop-color="#9b6bff" stop-opacity=".25"/></linearGradient>
+  <linearGradient id="pR3" gradientUnits="userSpaceOnUse" x1="672" y1="294" x2="586" y2="266"><stop offset="0" stop-color="#3f9bff" stop-opacity=".95"/><stop offset="1" stop-color="#3f9bff" stop-opacity=".25"/></linearGradient>
+  <linearGradient id="pR4" gradientUnits="userSpaceOnUse" x1="612" y1="266" x2="584" y2="266"><stop offset="0" stop-color="#ff6fb5" stop-opacity=".95"/><stop offset="1" stop-color="#ffb627" stop-opacity=".5"/></linearGradient>
+</defs>
+<rect width="820" height="380" fill="url(#pSky)"/>
+<circle cx="715" cy="72" r="120" fill="url(#pGlow)"/>
+<g stroke="#ffc83a" stroke-width="5" stroke-linecap="round">
+  <line x1="715" y1="10" x2="715" y2="-4"/><line x1="715" y1="134" x2="715" y2="148"/><line x1="653" y1="72" x2="639" y2="72"/><line x1="777" y1="72" x2="791" y2="72"/>
+  <line x1="671" y1="28" x2="661" y2="18"/><line x1="759" y1="116" x2="769" y2="126"/><line x1="671" y1="116" x2="661" y2="126"/><line x1="759" y1="28" x2="769" y2="18"/>
+</g>
+<circle cx="715" cy="72" r="44" fill="url(#pSun)"/>
+<g fill="#fff" opacity=".92"><ellipse cx="150" cy="70" rx="46" ry="16"/><ellipse cx="180" cy="58" rx="30" ry="16"/><ellipse cx="420" cy="48" rx="38" ry="13"/><ellipse cx="445" cy="40" rx="24" ry="12"/></g>
+<path d="M0 250 Q200 205 420 245 T820 232 L820 380 L0 380 Z" fill="#a8dc82"/>
+<g><ellipse cx="62" cy="240" rx="16" ry="4" fill="#8fcf6a"/><rect x="58" y="200" width="8" height="40" fill="#7a5230"/><path d="M50 241 l3 -6 l2 6 l3 -7 l2 7 l3 -6 l2 6 l3 -7 l2 7 l3 -6 l2 6 z" fill="#7cc35a"/><circle cx="62" cy="192" r="26" fill="#6fbf58"/><circle cx="48" cy="204" r="17" fill="#63b14d"/><circle cx="77" cy="205" r="17" fill="#5aa845"/>
+<ellipse cx="776" cy="244" rx="17" ry="4" fill="#8fcf6a"/><rect x="772" y="186" width="8" height="58" fill="#7a5230"/><path d="M764 245 l3 -6 l2 6 l3 -7 l2 7 l3 -6 l2 6 l3 -7 l2 7 l3 -6 l2 6 z" fill="#7cc35a"/><circle cx="776" cy="178" r="28" fill="#6fbf58"/><circle cx="760" cy="190" r="18" fill="#63b14d"/><circle cx="792" cy="192" r="18" fill="#5aa845"/></g>
+<path d="M0 292 Q250 268 500 292 T820 286 L820 380 L0 380 Z" fill="#7cc35a"/>
+<ellipse cx="368" cy="338" rx="118" ry="10" fill="#3f7d2c" opacity=".35"/>
+<g stroke="#5ea844" stroke-width="2" stroke-linecap="round" opacity=".8">
+  <path d="M30 360 l-3 -12 M36 362 l2 -13 M300 362 l-2 -11 M306 362 l3 -12 M470 362 l-3 -12 M476 364 l2 -12 M540 360 l-2 -12 M690 362 l-3 -12 M696 362 l3 -11 M800 364 l-2 -12"/>
+</g>
+<g stroke="#4f9a3a" stroke-width="3" stroke-linecap="round">
+  <line x1="70" y1="290" x2="70" y2="370"/><line x1="120" y1="315" x2="120" y2="372"/><line x1="170" y1="296" x2="170" y2="370"/>
+  <line x1="480" y1="326" x2="480" y2="372"/><line x1="672" y1="300" x2="672" y2="372"/><line x1="722" y1="286" x2="722" y2="370"/><line x1="772" y1="306" x2="772" y2="372"/>
+  <path d="M612 300 C615 320 609 345 612 372" fill="none" stroke-width="4"/>
+</g>
+<g fill="#5fb045"><ellipse cx="80" cy="335" rx="10" ry="4" transform="rotate(-30 80 335)"/><ellipse cx="622" cy="330" rx="14" ry="5" transform="rotate(-30 622 330)"/><ellipse cx="601" cy="348" rx="13" ry="5" transform="rotate(30 601 348)"/><ellipse cx="712" cy="330" rx="10" ry="4" transform="rotate(30 712 330)"/></g>
+<g><use href="#pPetals" x="70" y="290" fill="#ff5d6c"/><circle cx="70" cy="290" r="5" fill="#ffd23f"/>
+<use href="#pPetals" x="120" y="315" fill="#9b6bff"/><circle cx="120" cy="315" r="5" fill="#ffd23f"/>
+<use href="#pPetals" x="170" y="296" fill="#ff9f43"/><circle cx="170" cy="296" r="5" fill="#fff3b0"/>
+<use href="#pPetals" x="480" y="326" fill="#ffd23f"/><circle cx="480" cy="326" r="5" fill="#ff8f3a"/>
+<use href="#pPetals" x="672" y="300" fill="#5aa9ff"/><circle cx="672" cy="300" r="5" fill="#ffd23f"/>
+<use href="#pPetals" x="722" y="286" fill="#9b6bff"/><circle cx="722" cy="286" r="5" fill="#ffd23f"/>
+<use href="#pPetals" x="772" y="306" fill="#ff5d6c"/><circle cx="772" cy="306" r="5" fill="#ffd23f"/></g>
+<g fill="url(#pCoatFar)" stroke="#5a3418" stroke-width="1.6" stroke-linejoin="round">
+  <path d="M318 252 C314 276 320 292 322 302 L320 326 L318 334 L336 334 L335 326 L337 302 C343 290 346 272 349 256 Z"/>
+  <path d="M398 254 C396 276 399 294 401 304 L400 326 L398 334 L416 334 L415 326 L417 304 C419 290 422 272 424 258 Z"/>
+  <g fill="#3d2410"><rect x="317" y="328" width="21" height="8" rx="3"/><rect x="397" y="328" width="21" height="8" rx="3"/></g>
+</g>
+<path d="M264 204 C232 208 212 244 218 296 C226 280 232 268 240 258 C236 280 242 300 254 314 C254 282 260 252 276 232 Z" fill="url(#pMane)" stroke="#3d2410" stroke-width="1.4"/>
+<g fill="url(#pLeg)" stroke="#5a3418" stroke-width="1.8" stroke-linejoin="round">
+  <path d="M282 246 C278 274 288 290 292 302 L290 326 L287 334 L307 334 L306 326 L308 302 C314 288 320 268 324 250 Z"/>
+  <path d="M418 252 C416 276 420 294 422 304 L421 326 L418 334 L438 334 L437 326 L439 304 C441 290 446 270 450 256 Z"/>
+  <g fill="#3d2410"><rect x="286" y="328" width="22" height="9" rx="3"/><rect x="417" y="328" width="22" height="9" rx="3"/></g>
+</g>
+<path d="M270 194 C286 178 310 176 334 181 C356 186 372 184 388 178 C420 166 452 148 482 150 C506 151 523 160 532 174 C548 198 566 232 580 252 C590 266 586 282 569 284 C557 285 548 278 541 269 C530 255 517 241 506 231 C490 237 470 250 452 262 C434 280 344 288 306 276 C268 268 246 232 270 194 Z" fill="url(#pCoat)" stroke="#5a3418" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M270 194 C286 178 310 176 334 181 C356 186 372 184 388 178 C420 166 452 148 482 150 C506 151 523 160 532 174 C548 198 566 232 580 252 C590 266 586 282 569 284 C557 285 548 278 541 269 C530 255 517 241 506 231 C490 237 470 250 452 262 C434 280 344 288 306 276 C268 268 246 232 270 194 Z" fill="url(#pShine)"/>
+<ellipse cx="322" cy="214" rx="40" ry="30" fill="url(#pMuscle)"/>
+<ellipse cx="434" cy="222" rx="30" ry="34" fill="url(#pMuscle)"/>
+<ellipse cx="372" cy="272" rx="70" ry="14" fill="url(#pShade)"/>
+<ellipse cx="500" cy="196" rx="26" ry="20" fill="url(#pMuscle)"/>
+<path d="M560 246 C572 252 584 262 584 272 C582 282 572 286 562 283 C552 280 546 272 544 264 Z" fill="#7d4a2a" opacity=".35"/>
+<path d="M506 231 C514 214 528 206 542 210" fill="none" stroke="#9c6432" stroke-width="1.6" opacity=".8"/>
+<path d="M308 214 C318 236 318 256 306 274" fill="none" stroke="#a96a33" stroke-width="1.4" opacity=".6"/>
+<path d="M518 166 C518 152 523 140 530 132 C536 142 540 156 538 170 Z" fill="url(#pCoat)" stroke="#5a3418" stroke-width="1.8"/>
+<path d="M524 162 C524 152 527 145 530 140 C533 148 534 156 533 164 Z" fill="#f3c9a0"/>
+<path d="M390 178 C420 160 455 140 485 143 C508 145 524 156 533 172 C521 168 511 172 505 182 C497 175 487 177 481 188 C473 180 462 182 455 195 C447 186 435 189 429 202 C421 193 409 195 403 206 C402 193 397 184 390 178 Z" fill="url(#pMane)" stroke="#3d2410" stroke-width="1.4"/>
+<path d="M531 170 C544 176 552 190 549 206 C543 196 536 190 526 188 Z" fill="url(#pMane)" stroke="#3d2410" stroke-width="1.2"/>
+<path d="M530 202 Q539 210 549 203" fill="none" stroke="#2b1708" stroke-width="2.8" stroke-linecap="round"/>
+<g stroke="#2b1708" stroke-width="1.6" stroke-linecap="round"><line x1="533" y1="206" x2="531" y2="211"/><line x1="539" y1="208" x2="538" y2="213"/><line x1="545" y1="206" x2="546" y2="211"/></g>
+<ellipse cx="548" cy="222" rx="9" ry="6" fill="#ff8fa8" opacity=".55"/>
+<ellipse cx="575" cy="266" rx="4.5" ry="3" transform="rotate(40 575 266)" fill="#2b1708"/>
+<path d="M552 276 Q560 283 570 280" fill="none" stroke="#2b1708" stroke-width="2.2" stroke-linecap="round"/>
+<g stroke="#ffffff" stroke-width="2" opacity=".9">
+  <line x1="305" y1="228" x2="330" y2="206"/><line x1="305" y1="228" x2="334" y2="252"/><line x1="330" y1="206" x2="362" y2="216"/><line x1="334" y1="252" x2="362" y2="216"/>
+  <line x1="334" y1="252" x2="366" y2="260"/><line x1="362" y1="216" x2="392" y2="236"/><line x1="366" y1="260" x2="392" y2="236"/><line x1="392" y1="236" x2="420" y2="212"/>
+  <line x1="392" y1="236" x2="424" y2="254"/><line x1="330" y1="206" x2="334" y2="252"/><line x1="366" y1="260" x2="424" y2="254"/><line x1="362" y1="216" x2="420" y2="212"/>
+</g>
+<path d="M420 212 C446 202 474 198 500 212 C522 224 548 244 570 262" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="5 4" opacity=".9"/>
+<g fill="#2b5c8a" stroke="#fff" stroke-width="2">
+  <circle cx="305" cy="228" r="6"/><circle cx="330" cy="206" r="6"/><circle cx="334" cy="252" r="6"/><circle cx="362" cy="216" r="6"/>
+  <circle cx="366" cy="260" r="6"/><circle cx="420" cy="212" r="6"/><circle cx="424" cy="254" r="6"/>
+</g>
+<circle cx="392" cy="236" r="7.5" fill="#b5452c" stroke="#fff" stroke-width="2"/>
+<g transform="translate(608 290) scale(1.55)"><use href="#pPetals" fill="#ff6fb5"/><circle r="5.5" fill="#ffd23f"/></g>
+<g fill="none" stroke-linecap="round">
+  <g filter="url(#pAir)" stroke-width="9" opacity=".55">
+    <path d="M772 296 C744 236 694 226 664 248 C638 266 612 248 586 264" stroke="url(#pR1)"/>
+    <path d="M722 278 C708 222 664 206 642 230 C622 252 604 236 586 260" stroke="url(#pR2)"/>
+    <path d="M672 294 C664 262 642 276 626 264 C610 252 598 262 586 266" stroke="url(#pR3)"/>
+    <path d="M612 266 C626 244 606 232 596 246 C590 254 590 262 584 266" stroke="url(#pR4)"/>
+  </g>
+  <g stroke-width="2.4" opacity=".9">
+    <path d="M772 296 C744 236 694 226 664 248 C638 266 612 248 586 264" stroke="url(#pR1)"/>
+    <path d="M722 278 C708 222 664 206 642 230 C622 252 604 236 586 260" stroke="url(#pR2)"/>
+    <path d="M672 294 C664 262 642 276 626 264 C610 252 598 262 586 266" stroke="url(#pR3)"/>
+    <path d="M612 266 C626 244 606 232 596 246 C590 254 590 262 584 266" stroke="url(#pR4)"/>
+  </g>
+</g>
+<g fill="#ff4f7f">
+  <path d="M560 150 c-6 -8 -18 -2 -12 8 l12 12 l12 -12 c6 -10 -6 -16 -12 -8 z"/>
+  <path d="M594 124 c-5 -7 -15 -2 -10 7 l10 10 l10 -10 c5 -9 -5 -14 -10 -7 z" opacity=".85"/>
+  <path d="M622 158 c-4 -6 -12 -1 -8 6 l8 8 l8 -8 c4 -7 -4 -12 -8 -6 z" opacity=".75"/>
+</g>
+<g fill="#fff"><path d="M508 120 l3 9 l9 3 l-9 3 l-3 9 l-3 -9 l-9 -3 l9 -3 z"/><path d="M640 226 l2 7 l7 2 l-7 2 l-2 7 l-2 -7 l-7 -2 l7 -2 z"/><path d="M578 196 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 l6 -2 z"/></g>
+<g transform="translate(150 190) rotate(-15)"><ellipse cx="-7" cy="-4" rx="8" ry="6" fill="#9b6bff"/><ellipse cx="7" cy="-4" rx="8" ry="6" fill="#9b6bff"/><ellipse cx="-5" cy="5" rx="5" ry="4" fill="#ff8fc7"/><ellipse cx="5" cy="5" rx="5" ry="4" fill="#ff8fc7"/><rect x="-1.2" y="-8" width="2.4" height="16" rx="1.2" fill="#3a2412"/></g>
+</svg>
+<figcaption>Pony smells the garden.</figcaption>
+</figure>
+
+<p>As large models for text, images, audio, and video keep improving, recognizing and classifying content in those modalities is becoming a commodity. Smell lags far behind: it is the major human sense that AI has made the least progress on. As Osmo CEO Alex Wiltschko put it, "Computers have been able to digitize vision and hearing, but not smell – our deepest and oldest sense." (Monell Chemical Senses Center, 2023)</p>
+<p>Sight and hearing have had shared maps for centuries. Smell has not.</p>
+<ul>
+<li><b>Music:</b> In the Pythagorean tradition, going back to the 6th century BCE, the most pleasing intervals match simple ratios (2:1 for the octave, 3:2 for the fifth), as recorded by Boethius (early 6th century CE), and this number-based theory guided Western music for two thousand years. In the 19th century, physics and physiology explained why: consonance comes from how overtones line up and how the ear processes them (Helmholtz, 1863).</li>
+<li><b>Color:</b> In 1672, prism experiments showed that white light is a mixture of colours, and by 1704 Newton had bent the spectrum into a colour circle. In 1905, color got a full coordinate system (hue, value, and chroma) that is still used today (Newton, 1672, 1704; Munsell, 1905).</li>
+</ul>
+<p>Smell only began to get a shared language in the past few decades, one industry at a time:</p>
+<ul>
+<li><b>Perfume, the traditional odor map:</b> Perfumers have long grouped scents into families such as floral, woody, and amber. The Fragrance Wheel, which places related families next to each other, first appeared in Michael Edwards' Fragrance Manual (Edwards, 1992).</li>
+<li><b>Wine:</b> In the 1980s, researchers built the Wine Aroma Wheel, a standard vocabulary arranged from broad categories at the center to specific terms at the rim; the 1987 revision suggests reference standards so tasters can train on the terms (Noble et al., 1984, 1987).</li>
+<li><b>Coffee:</b> The coffee industry published its first flavor wheel in 1995 and rebuilt it in 2016 on a scientific sensory lexicon (Spencer et al., 2016). That lexicon defines about 110 attributes for flavour (taste and aroma), texture and overall impression, with definitions and references (Specialty Coffee Association of America and World Coffee Research, 2016; World Coffee Research, 2016).</li>
+</ul>
+<p>These maps are vocabularies arranged by expert panels. They help trained people name what they smell inside one domain, but they cannot predict how a new molecule will smell, and they do not carry over from one domain to another. A large-scale learned map that generalizes to new molecules came in 2023, when Lee et al. published the Principal Odor Map, a graph neural network model that maps molecular structure to perceived odour and describes new molecules at a level comparable to trained human panelists (Lee et al., 2023).</p>
+
+<h2 class="session">From single molecules to mixtures: the DREAM mixture challenge</h2>
+<p><b>Single molecules are largely mapped; mixtures are the next frontier.</b> The Principal Odor Map predicts how a single molecule smells about as well as a trained human panelist (Lee et al., 2023). But almost nothing we smell is a single molecule: coffee, wine, and perfume are mixtures of tens to hundreds of compounds. Predicting how a mixture smells, and how two mixtures compare, is the open problem.</p>
+<p><b>Early work showed mixtures can be treated as one percept.</b> Snitz et al. (2013) found that summing a mixture's molecule vectors into a single vector, scaled to unit length, and measuring the angle between two such vectors predicts how similar people find two mixtures, while comparing components one by one does not.</p>
+<p><b>The second DREAM olfaction challenge turned this into a benchmark.</b> The organizers merged six published datasets, from similarity ratings and triangle tests, into one training set on a common 0 (indistinguishable) to 1 (maximally different) scale: 507 mixture-pair measurements in the paper's count, 730 rated rows in the released file. Over about three months, 26 teams competed, and 19 submitted final predictions for a hidden test set of 46 pairs (T46). Recently, a new validation set of 50 pairs (V50), each mixture with 9 to 11 molecules and no molecule shared within a pair, was rated to test the models prospectively (Satarifard et al., 2026).</p>
+<p>In the published results (Satarifard et al., 2026), four teams tied at the top: D2Smell, UMich CASI, ChemSenSim Lab, and belfaction. <b>The surprise was that mixture distances were well captured by a compact semantic space, the predicted odour words ("fruity", "sweet") of the single molecules:</b> an ensemble that kept only such semantic features improved on the full ensemble. Predictions were pulled toward intermediate values, and errors were lowest for mixtures rated in the mid range (about 0.5 to 0.8), where training data are most abundant (Satarifard et al., 2026).</p>
+<p>We also tested a foundation model for single molecules on this dataset: MIST. MIST (Molecular Insight SMILES Transformers) is a family of general molecular foundation models with up to an order of magnitude more parameters and data than earlier work. It is pre-trained on SMILES strings from the Enamine REAL Space with masked language modelling, then fine-tuned on more than 400 property tasks, from physiology and electrochemistry to quantum chemistry. For smell, the authors fine-tuned it on 4,983 labelled molecules from the open-POM curation of Lee et al.'s data, the same set we split into 3,975 training and 1,008 held-out molecules (AUROC 0.915 vs 0.894 reported for Google's original POM), and extended it to mixture distances, but that mixture model was not publicly released as of November 2026. We used the released fine-tuned odour model (MIST-28M encoder, 135 odour words) in place of open-POM: predict each molecule's odour words, average them over the mixture, and compare the two mixtures (Wadell et al., 2025).</p>
+<p><b>But no model consistently beats open-POM.</b> We reran each model's released code where possible and scored it against the public labels (Table 1). D2Smell, one of the top four teams, beats open-POM on T46 (r 0.469 vs 0.432) but drops to r 0.165 on V50, where open-POM reaches 0.552. MIST avg is on par with open-POM, with slightly lower r on both sets (0.407 vs 0.432 on T46, 0.547 vs 0.552 on V50). POMMix (Tom et al., 2025), a mixture model trained on 865 pairs compiled from published datasets, and PL21, a DREAM team that fitted a Lasso on mixture pairs from Bushdid et al. (2014), stay below open-POM on both sets. Both sets are small (46 and 50 pairs), and rating noise limits every model: two rating sessions of the same V50 pairs agree at only r 0.74 (Satarifard et al., 2026).</p>
+<div class="wide">
+<table>
+<caption><b>Table 1.</b> Results on the two held-out sets (Pearson r).</caption>
+<thead><tr><th>Model</th><th style="text-align:left">What it is</th><th>T46 (46 pairs)</th><th>V50 (50 pairs)</th></tr></thead>
+<tbody>
+<tr><td>open-POM</td><td style="text-align:left">single-molecule odor map, mixture = average</td><td>0.432</td><td>0.552</td></tr>
+<tr><td>MIST avg</td><td style="text-align:left">MIST's released odour model, mixture = average</td><td>0.407</td><td>0.547</td></tr>
+<tr><td>D2Smell</td><td style="text-align:left">DREAM top-4 team, XGBoost</td><td>0.469</td><td>0.165</td></tr>
+<tr><td>POMMix</td><td style="text-align:left">released checkpoint, trained on 865 published pairs</td><td>0.397</td><td>0.478</td></tr>
+<tr><td>PL21</td><td style="text-align:left">Lasso trained on Bushdid pairs</td><td>0.346</td><td>0.071</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">Scored by us against the public T46 and V50 labels. Open-POM, MIST avg and POMMix are run from their released code and checkpoints. D2Smell and PL21: T46 from rerunning the teams' released models, which reproduce the challenge paper's scores; V50 from the teams' published predictions, since neither release can be run on new mixtures. For MIST we used the released odour model in the same averaging setup as open-POM, because the paper's own mixture-distance model was not released. For reference, the two rating sessions of V50 agree at r = 0.742 (Satarifard et al., 2026).</p>
+
+
+<p class="abs">Data and evaluation. We fit on 820 rated mixture pairs: the 730 rows of the challenge training file and 90 rows the organizers released after the challenge (772 distinct pairs of 800 mixtures, built from 234 molecules). T46 and V50 are external test sets of new mixtures. CV is 50 repeats of 5-fold cross-validation on 514 development pairs, with whole mixtures held out. We report Pearson r throughout.</p>
+
+<h2 class="session">Session 1. Exploring open-POM with added factors</h2>
+<p>The open-POM baseline already captures much of what people perceive in a mixture, so before building anything new we ask what it misses. We keep open-POM frozen and change one thing at a time in how the ratings are read from it. Each change adds only a few fitted numbers, so its effect can be read off directly, and whatever helps tells us something the baseline leaves out.</p>
+<h2>1.1 What does averaging open-POM miss?</h2>
+<p>Our baseline is the open-POM (Barsainyan et al., 2023) model of the DREAM paper (Satarifard et al., 2026): simple, and hard to beat. It describes each molecule by open-POM's predicted odour-word profile, averages the profiles within each mixture, and compares the two averages by direction:</p>
+<div class="eq">$$p(A)=\frac{1}{n_A}\sum_{m\in A} q(m),\qquad d(A,B)=\left\|\frac{p(A)}{\|p(A)\|}-\frac{p(B)}{\|p(B)\|}\right\|,\qquad \hat y(A,B) = a\,d(A,B)+c$$</div>
+<ul>
+<li>$A$ and $B$ are the two mixtures in a pair, each a set of molecules; $m\in A$ runs over the molecules in $A$.</li>
+<li>$n_A$ and $n_B$ are the numbers of molecules in each mixture.</li>
+<li>$q(m)\in\mathbb{R}^{138}$ is open-POM's predicted odour-word profile of molecule $m$, with each word rank-scaled over the 235 DREAM molecules.</li>
+<li>$y(A,B)$ is the rating people gave the pair, from 0 (indistinguishable) to 1 (maximally different), and $\hat y(A,B)$ is the model's prediction.</li>
+</ul>
+<p>The slope $a$ and intercept $c$ are fitted by least squares on the 820 training pairs. They change RMSE but not Pearson r. It reaches r 0.392 in cross-validation, 0.432 on T46 and 0.552 on V50. It misses two things: which molecules dominate a mixture, and how the size of a mixture changes what people perceive.</p>
+
+<h2>1.2 Factor: chemical groups decide which molecules dominate</h2>
+<p>A plain average lets every molecule count equally. But some molecules dominate a mixture's smell, and which ones is written in their chemistry. Each molecule $m$ carries indicators $x_g(m)\in\{0,1\}$, equal to 1 if it contains chemical group $g$; we turn them into a weight $W(m)$ and replace the plain average with a weighted one. The groups are not chosen by hand. We start from RDKit's standard list of 85 functional groups (aldehyde, ester, benzene ring and so on) and count them on the molecules of the training pairs, using structure only, never ratings. 42 of the groups occur, groups carried by exactly the same molecules are merged into one, and we keep the 24 carried by at least 5 molecules. Table A2 in the appendix lists them.</p>
+<div class="eq">$$W(m)=\exp\Big(\sum_{g=1}^{24}\theta_g\,x_g(m)\Big),\qquad p_W(A)=\frac{\sum_{m\in A}W(m)\,q(m)}{\sum_{m\in A}W(m)}$$</div>
+<div class="eq">$$d_W(A,B)=\left\|\frac{p_W(A)}{\|p_W(A)\|}-\frac{p_W(B)}{\|p_W(B)\|}\right\|$$</div>
+<p>$\theta_g$ is the weight of group $g$, learned from the ratings. A positive weight means molecules carrying that group pull the mixture toward their own smell; a negative weight means they recede. With every $\theta_g=0$ the model is the baseline again. The fitted weights favour benzene rings, methyls on a ring, aldehydes and aromatic nitrogen; straight carbon chains and ketones recede. The group weights raise cross-validated r from 0.392 to 0.400 and T46 from 0.432 to 0.439.</p>
+<p>Nine broad chemical classes were too coarse, and weighting by open-POM's 138 odour words overfitted. The 24 RDKit groups strike the balance. Adding interactions between groups did not improve the fit.</p>
+
+<h2>1.3 Factor: mixture size, by counting molecules</h2>
+<p>The baseline's errors grow with the size mismatch between the two mixtures (r 0.180). The direct way to capture this is to count molecules and add the size mismatch to the readout:</p>
+<div class="eq">$$\hat y(A,B) = a\,d_W(A,B) + b\,|\log n_A-\log n_B| + c$$</div>
+<p>We also tested total size, $\log n_A+\log n_B$; it did not improve the fit and is left out. The size count alone raises cross-validated r from 0.392 to 0.418 but leaves T46 unchanged (0.432) and lowers V50 slightly (0.549); together with the group weights it reaches 0.426 in cross-validation. The 24 group weights are fitted together with $a$, $b$ and $c$, 27 numbers in all, by minimizing</p>
+<div class="eq">$$\sum_{(A,B)\in\text{train}}\big(\hat y(A,B)-y(A,B)\big)^2+\lambda\sum_{g=1}^{24}\theta_g^2,\qquad \lambda=10^{-3}$$</div>
+
+<h2>1.4 Directly encoding the vector's magnitude in the distance</h2>
+<p>Counting molecules helps, but the count is an input we add by hand, and it treats every mixture of the same size alike. The averaged profile already holds this information. It is a vector with a direction and a magnitude, and the baseline divides the magnitude away and compares directions only. Yet the magnitude says how many molecules the mixture holds and how much they agree. For a mixture $A$ with weighted profile $p_W(A)$,</p>
+<div class="eq">$$\|p_W(A)\|=\sqrt{\sum_{w=1}^{138} p_{W,w}(A)^2},\qquad h(A)=\log\|p_W(A)\|$$</div>
+<p>Averaging unlike molecules shortens the vector toward the mean profile; molecules that agree keep it long. On real data $h(A)$ falls with the number of molecules at r −0.70 across the 800 training mixtures. We keep both the direction $\hat p_W(A)=p_W(A)/\|p_W(A)\|$ and the log-magnitude $h(A)$, and replace the molecule count with one distance:</p>
+<div class="eq">$$d(A,B)=\sqrt{\|\hat p_W(A)-\hat p_W(B)\|^2+\eta\,\big(h(A)-h(B)\big)^2},\qquad \hat y(A,B) = a\,d(A,B)+c$$</div>
+<p>The model has 27 numbers (24 group weights, $\eta$, $a$, $c$), all fitted on DREAM with the same loss. Size now comes out of the averaging itself, still varies between mixtures of the same size, and is combined with the direction difference in one distance. The link between prediction errors and size mismatch falls from r 0.180 with the baseline to 0.027.</p>
+
+<div class="wide">
+<table>
+<caption><b>Table 2.</b> Factors added to the open-POM baseline. Fitted on DREAM: numbers fitted on the rated pairs.</caption>
+<thead><tr><th>Model</th><th>Fitted on DREAM</th><th>T46</th><th>V50</th><th>CV</th></tr></thead>
+<tbody>
+<tr><td>Baseline (open-POM average)</td><td>2</td><td>0.432</td><td>0.552</td><td>0.392</td></tr>
+<tr><td>+ chemical groups</td><td>26</td><td>0.439</td><td>0.563</td><td>0.400</td></tr>
+<tr><td>+ size count</td><td>3</td><td>0.432</td><td>0.549</td><td>0.418</td></tr>
+<tr><td>+ both factors (size count)</td><td>27</td><td>0.441</td><td>0.562</td><td>0.426</td></tr>
+<tr><td>+ both factors (magnitude in distance)</td><td>27</td><td class="b">0.444</td><td class="b">0.584</td><td class="b">0.434</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">CV: 50 repeats of 5-fold cross-validation with whole mixtures held out. T46, V50: external test sets.</p>
+
+
+<h2>1.5 Summary: what Session 1 tells us</h2>
+<p>Session 1 was a probe. Its factors are hand-crafted and ad hoc: 24 chemical groups picked from a fixed list, and a magnitude inherited from averaging word profiles, all added on top of a frozen network built for single molecules. Their value is in what they reveal: by keeping open-POM frozen and adding a few numbers at a time, each gain points to something specific. With only 27 fitted numbers they improve on the baseline in every column (Table 2), and they show what the averaging baseline misses: some molecules dominate a mixture, and which ones is written in their structure; and the size and make-up of a mixture belong in the distance, carried by the length of the mixture vector rather than by a molecule count.</p>
+<p>These two findings led us to design Pony (Session 2). Dominance becomes a strength that the network learns from atoms, in place of hand-picked groups. The magnitude becomes a learned mixture length, in place of an inherited one. Both act in a small network shaped for combining molecules, with few numbers fitted on mixtures.</p>
+
+<h2 class="session">Session 2. A small network shaped for mixtures</h2>
+<p>Session 1 kept open-POM frozen and added terms around it. The terms helped, but they sit on top of a representation learned to predict the odour words of single molecules, not to combine molecules into mixtures. We first look at this limitation and where it comes from, and then replace open-POM with a network sized to the data and shaped for mixtures.</p>
+
+<h2>2.1 The memorization problem of the open-POM network</h2>
+<p>Open-POM was built to predict the odour words of single molecules, with 2.09 million parameters trained on 3,975 labelled molecules. A network of that size can fit its training molecules without learning rules that carry to new ones: with 1,008 molecules held out, open-POM reaches a held-out AUROC of 0.890 but scores 0.069 higher on the molecules it was trained on (Table A1). We call this train-minus-held-out difference the memorization gap. For mixtures, what matters is less single-molecule accuracy than what the molecule embedding distinguishes, since a mixture model can only combine that. In open-POM's embedding many DREAM molecules point in similar directions, so two mixtures that share no molecule can look alike because their molecules do.</p>
+<p>The mixture data do not make up for this, and can make it worse. DREAM's 800 mixtures are built from only 234 molecules, each appearing in a median of 137 training pairs, so a flexible model can score well by recognizing molecules instead of learning how they combine. We saw this whenever more was fitted on the pairs: the more of MIST's parameters were fine-tuned on mixtures, the less the gain carried over to held-out mixtures, and fine-tuning a network on DREAM improved about as much when the ratings were randomly reassigned to pairs. Published methods show the same fragility across test sets: D2Smell falls from r 0.469 on T46 to 0.165 on V50 (Table 1).</p>
+<p>To see which parts of open-POM's design matter, we retrained it with one component changed at a time (Table A3). No single component explains the memorization gap: from 0 to 8 message-passing rounds and from width 50 to 200 it stays between 0.064 and 0.073, and only a linear read-out lowers it, to 0.058. The clearest effect on mixtures is in pooling, the step that merges a molecule's atom vectors into one vector. Open-POM pools with set2set, in which an LSTM builds a new query over the atoms of each molecule. Replacing it with one learned query shared by all molecules, as in Pony, raised mixture r on every set (T46 0.404 → 0.457, V50 0.554 → 0.570, CV 0.397 → 0.404) with 0.88 M fewer parameters, while single-molecule accuracy stayed level (0.888 against 0.890). We suspect a shared query helps because it weights the same kinds of atoms in every molecule, so the molecule vectors stay comparable when they are combined.</p>
+<h2>2.2 How far we are from the data a deep network normally has</h2>
+<p>Deep networks need data on a scale that odour research does not have. Language models are the clearest case: every next word in a text is a free label, so they train on billions of them. Vision and protein models rely on hundreds of thousands to millions of human-labelled examples. Odour has thousands of labelled molecules and hundreds of rated mixtures.</p>
+<div class="wide">
+<table>
+<caption><b>Table 3.</b> Labelled examples against trained parameters. EPP = examples per parameter (examples divided by parameters). Figures for other fields are approximate: GPT-3 and BERT from the original papers (Brown et al., 2020; Devlin et al., 2019); ResNet-50's 1.28 million ImageNet (Deng et al., 2009) training images from He et al. (2016), and its 25.6 M parameters from the torchvision implementation. Open-POM avg and Open-POM + both factors are the models of Session 1: frozen open-POM, averaged, with a fitted line, and the same with both factors added. T46 r, V50 r: Pearson correlation with the human ratings on the two external test sets. MIST avg is MIST's frozen odour model with the molecules' word profiles averaged and a line fitted. The fully fine-tuned MIST was evaluated only in cross-validation (Section 2.1), so it has no test-set r.</caption>
+<thead><tr><th>Model</th><th style="text-align:left">Labelled data</th><th>Examples</th><th>Parameters trained</th><th>EPP</th><th>T46 r</th><th>V50 r</th></tr></thead>
+<tbody>
+<tr><td colspan="7" style="text-align:left;font-style:italic">Other fields</td></tr>
+<tr><td>GPT-3</td><td style="text-align:left">words of text</td><td>about 300 billion</td><td>175 B</td><td>1.7</td><td>—</td><td>—</td></tr>
+<tr><td>BERT</td><td style="text-align:left">words of text</td><td>3.3 billion</td><td>110 M</td><td>30</td><td>—</td><td>—</td></tr>
+<tr><td>ResNet-50</td><td style="text-align:left">ImageNet images</td><td>1,280,000</td><td>25.6 M</td><td>0.050</td><td>—</td><td>—</td></tr>
+<tr class="sep"><td colspan="7" style="text-align:left;font-style:italic">Odour: training on single molecules</td></tr>
+<tr><td>Open-POM</td><td style="text-align:left">molecules with odour words</td><td>3,975</td><td>2.09 M</td><td>0.0019</td><td>—</td><td>—</td></tr>
+<tr class="sep"><td colspan="7" style="text-align:left;font-style:italic">Odour: training on mixture pairs</td></tr>
+<tr><td>MIST, fine-tuned on mixtures</td><td style="text-align:left">rated mixture pairs</td><td>820</td><td>26.7 M</td><td>0.000031</td><td>—</td><td>—</td></tr>
+<tr><td>POMMix</td><td style="text-align:left">rated mixture pairs</td><td>865</td><td>1.64 M</td><td>0.00053</td><td>0.397</td><td>0.478</td></tr>
+<tr><td>MIST avg</td><td style="text-align:left">rated mixture pairs</td><td>820</td><td>2</td><td>410</td><td>0.407</td><td>0.547</td></tr>
+<tr><td class="b">Open-POM avg</td><td class="b" style="text-align:left">rated mixture pairs</td><td class="b">820</td><td class="b">2</td><td class="b">410</td><td class="b">0.432</td><td class="b">0.552</td></tr>
+<tr><td class="b">Open-POM + both factors (Session 1)</td><td class="b" style="text-align:left">rated mixture pairs</td><td class="b">820</td><td class="b">27</td><td class="b">30</td><td class="b">0.444</td><td class="b">0.584</td></tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><b>The absolute gap.</b> DREAM has 820 rated pairs of 800 mixtures: about 1,500 times fewer examples than ImageNet and hundreds of millions of times fewer than the words a language model sees. Single molecules are better off, about 4,000, but still 300 times fewer than ImageNet.</li>
+<li><b>The gap per parameter.</b> Language models have 1.7 to 30 examples for every parameter. Open-POM has 0.0019, one labelled molecule for every 526 parameters. Networks trained on mixtures have 0.00053 down to 0.000031, one rated pair for every 1,900 to 32,600 parameters: three to six orders of magnitude thinner than language models, and thinnest where the task is hardest.</li>
+<li><b>Only small fits have more examples than parameters, and they score best.</b> The Session 1 models keep the network frozen and fit 2 or 27 numbers on the 820 pairs; they are the only odour rows with more examples than parameters, and they have the highest T46 and V50 r in the table.</li>
+<li><b>Odour labels are costly.</b> A language model's labels come with the text. An odour label needs people smelling physical samples in the lab, and each rating is noisy: two rating sessions of the same V50 pairs agree at r 0.74.</li>
+</ul>
+<p>With so few examples per parameter, a network can fit its training molecules rather than general rules. Since the data cannot easily grow, Section 2.3 shrinks the network instead.</p>
+
+<h2>2.3 Architecture Pony: As simple as possible, but not simpler</h2>
+<p>Our network is Pony: a <b>P</b>arsimonious <b>O</b>dour <b>N</b>etwork with hidden-la<b>Y</b>er mixing. It is trained on single molecules only, and its layout borrows the structure of the olfactory pathway rather than its measured values.</p>
+<p><b>Single molecules: a receptor-like code, translated into words.</b> In the nose, an odorant activates a combination of odour receptors, each receptor responds to many odorants, and the identity of a smell is carried by the pattern across receptors (Buck and Axel, 1991; Malnic et al., 1999). Pony's 64-unit hidden layer plays this role: each molecule is a pattern across a small set of shared channels. A single linear layer then translates this pattern into the 138 odour words, much as a person translates a smell into language.</p>
+<p><b>Mixtures: combined where the nose combines them.</b> The molecules of a mixture reach the receptors together, and their responses do not simply add: odorants compete at shared receptors (Rospars et al., 2008; Reddy et al., 2018), and responses are normalized downstream of the receptors, as shown in the fruit fly (Olsen et al., 2010). Pony therefore combines molecules in the hidden layer, as a weighted sum of unit directions, where open-POM averages the final word profiles; the weights carry the competition and are normalized within each mixture. Finally, Pony is parsimonious: 18 times smaller than open-POM, sized to the few thousand labelled molecules it learns from (Section 2.2).</p>
+<p>Together these choices make the additive rule plausible. A sum is only as good as the space it is taken in, and in a receptor-like code it stays close to how a mixture is first encoded. Because the read-out is linear, a weighted sum of hidden patterns is read out as the same weighted combination of the molecules' word scores, so the mixture remains interpretable in odour language. The few numbers fitted on mixtures then only decide how much each molecule counts and how mixtures are compared.</p>
+<h3>Why the simpler network helps</h3>
+<p>The same lesson has been drawn in combination prediction in biology. Ahlmann-Eltze et al. (2025) tested deep models that predict the effect of combining two genetic perturbations, including GEARS from Leskovec's group (Roohani et al., 2024) and large pretrained foundation models. None of them beat a baseline that simply adds the two single effects, and none found genetic interactions better than a baseline that predicts no change: the models mostly predicted buffering interactions and rarely synergistic ones. With few measured combinations, the combination-specific capacity of a deep model has little reliable signal to learn from.</p>
+<p>Odour mixtures are in the same regime: thousands of labelled single molecules, 820 rated mixture pairs, and an averaging baseline that is hard to beat (Session 1). We take three consequences from that work.</p>
+<ol>
+<li><b>Keep the additive rule as the backbone of mixing.</b> Our mixture vector is a weighted average of molecule directions. The network is not asked to learn interactions from DREAM.</li>
+<li><b>Put the learning where the data are.</b> Everything the model knows about a molecule, including how much it should count, is learned from single molecules.</li>
+<li><b>Remove capacity that single-molecule data cannot justify.</b> The whole open-POM network, with more message-passing rounds, wider layers, LSTM pooling and a deep dense read-out, reaches a higher held-out AUROC on single molecules than Pony (w/o attention) (0.890 against 0.860) but also a larger memorization gap (0.069 against 0.025; Table A1), without better mixture prediction (Table 6).</li>
+</ol>
+<p>Where we differ from the additive baseline is the weights: which molecule counts more is a property of each molecule alone, so it can be learned from single molecules and still change the mixture (attention, below).</p>
+<p>Following these lessons, from the memorization problem (Section 2.1), the data gap (Section 2.2) and the additive rule above, we design Pony as shown in Figure 1: open-POM on top, Pony below.</p>
+<figure>
+<div class="wide">
+<svg viewBox="0 0 770 462" role="img" aria-label="Top: the open-POM network, with five rounds of message passing, set2set pooling by an LSTM and a three-layer dense read-out, 2.09 million parameters. Bottom: our network, with three rounds of message passing, attention pooling over atoms and one linear head, 0.117 million parameters.">
+<defs>
+  <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#111"/></marker>
+  <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b5452c"/></marker>
+  <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2b5c8a"/></marker>
+</defs>
+<rect x="6" y="30" width="758" height="170" rx="6" fill="none" stroke="#bbb" stroke-dasharray="5 4"/>
+<text x="14" y="22" font-size="14" font-weight="600">(a) open-POM network: 2.09 M parameters</text>
+<g transform="translate(0,-110)"><!-- molecule graph -->
+<g stroke="#111" stroke-width="1.3" fill="#fff">
+  <line x1="40" y1="225" x2="62" y2="198"/><line x1="62" y1="198" x2="94" y2="205"/><line x1="94" y1="205" x2="104" y2="236"/>
+  <line x1="104" y1="236" x2="80" y2="258"/><line x1="80" y1="258" x2="48" y2="250"/><line x1="48" y1="250" x2="40" y2="225"/>
+  <line x1="94" y1="205" x2="112" y2="182"/>
+  <circle cx="40" cy="225" r="6"/><circle cx="62" cy="198" r="6"/><circle cx="94" cy="205" r="6"/><circle cx="104" cy="236" r="6"/>
+  <circle cx="80" cy="258" r="6"/><circle cx="48" cy="250" r="6"/><circle cx="112" cy="182" r="6" fill="#ddd"/>
+</g>
+<!-- message passing -->
+<g stroke="#2b5c8a" stroke-width="1.3" fill="#dfe9f3">
+  <line x1="170" y1="225" x2="192" y2="198"/><line x1="192" y1="198" x2="224" y2="205"/><line x1="224" y1="205" x2="234" y2="236"/>
+  <line x1="234" y1="236" x2="210" y2="258"/><line x1="210" y1="258" x2="178" y2="250"/><line x1="178" y1="250" x2="170" y2="225"/>
+  <line x1="224" y1="205" x2="242" y2="182"/>
+  <circle cx="170" cy="225" r="7"/><circle cx="192" cy="198" r="7"/><circle cx="224" cy="205" r="7"/><circle cx="234" cy="236" r="7"/>
+  <circle cx="210" cy="258" r="7"/><circle cx="178" cy="250" r="7"/><circle cx="242" cy="182" r="7"/>
+</g>
+<g stroke="#2b5c8a" stroke-width="1" fill="none">
+  <path d="M196 204 Q207 196 218 202" marker-end="url(#a3)"/><path d="M229 214 Q236 222 233 228" marker-end="url(#a3)"/><path d="M204 255 Q192 258 184 253" marker-end="url(#a3)"/>
+</g>
+
+<line x1="124" y1="225" x2="152" y2="225" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+<line x1="254" y1="225" x2="296" y2="225" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+</g>
+<text x="74" y="182" font-size="12.5" text-anchor="middle">molecule <tspan font-style="italic">m</tspan></text>
+<text x="206" y="178" font-size="12.5" text-anchor="middle">message passing</text>
+<text x="206" y="192" font-size="11" text-anchor="middle" fill="#555">5 rounds, 100 per atom</text>
+<circle cx="322" cy="115" r="18" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="322" y="119" font-size="11" text-anchor="middle">LSTM</text>
+<path d="M334 100 C352 76 292 76 310 100" fill="none" stroke="#111" stroke-width="1" marker-end="url(#a1)"/>
+<text x="322" y="68" font-size="11" text-anchor="middle" fill="#555">3 iterations</text>
+<text x="322" y="178" font-size="12.5" text-anchor="middle">set2set pooling</text>
+<text x="322" y="192" font-size="11" text-anchor="middle" fill="#555">attention by LSTM query</text>
+<line x1="342" y1="115" x2="392" y2="115" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+<g stroke="#2b5c8a" stroke-width=".8"><rect x="398" y="70" width="10" height="9" fill="#dfe9f3"/><rect x="398" y="79" width="10" height="9" fill="#9fbbd6"/><rect x="398" y="88" width="10" height="9" fill="#5f8fbd"/><rect x="398" y="97" width="10" height="9" fill="#dfe9f3"/><rect x="398" y="106" width="10" height="9" fill="#9fbbd6"/><rect x="398" y="115" width="10" height="9" fill="#5f8fbd"/><rect x="398" y="124" width="10" height="9" fill="#dfe9f3"/><rect x="398" y="133" width="10" height="9" fill="#9fbbd6"/><rect x="398" y="142" width="10" height="9" fill="#5f8fbd"/><rect x="398" y="151" width="10" height="9" fill="#dfe9f3"/></g>
+<text x="403" y="178" font-size="12.5" text-anchor="middle">400</text>
+<line x1="412" y1="115" x2="458" y2="115" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+<g stroke="#999" stroke-width=".35"><line x1="475" y1="70" x2="535" y2="70"/><line x1="475" y1="70" x2="535" y2="88"/><line x1="475" y1="70" x2="535" y2="106"/><line x1="475" y1="70" x2="535" y2="124"/><line x1="475" y1="70" x2="535" y2="142"/><line x1="475" y1="70" x2="535" y2="160"/><line x1="475" y1="88" x2="535" y2="70"/><line x1="475" y1="88" x2="535" y2="88"/><line x1="475" y1="88" x2="535" y2="106"/><line x1="475" y1="88" x2="535" y2="124"/><line x1="475" y1="88" x2="535" y2="142"/><line x1="475" y1="88" x2="535" y2="160"/><line x1="475" y1="106" x2="535" y2="70"/><line x1="475" y1="106" x2="535" y2="88"/><line x1="475" y1="106" x2="535" y2="106"/><line x1="475" y1="106" x2="535" y2="124"/><line x1="475" y1="106" x2="535" y2="142"/><line x1="475" y1="106" x2="535" y2="160"/><line x1="475" y1="124" x2="535" y2="70"/><line x1="475" y1="124" x2="535" y2="88"/><line x1="475" y1="124" x2="535" y2="106"/><line x1="475" y1="124" x2="535" y2="124"/><line x1="475" y1="124" x2="535" y2="142"/><line x1="475" y1="124" x2="535" y2="160"/><line x1="475" y1="142" x2="535" y2="70"/><line x1="475" y1="142" x2="535" y2="88"/><line x1="475" y1="142" x2="535" y2="106"/><line x1="475" y1="142" x2="535" y2="124"/><line x1="475" y1="142" x2="535" y2="142"/><line x1="475" y1="142" x2="535" y2="160"/><line x1="475" y1="160" x2="535" y2="70"/><line x1="475" y1="160" x2="535" y2="88"/><line x1="475" y1="160" x2="535" y2="106"/><line x1="475" y1="160" x2="535" y2="124"/><line x1="475" y1="160" x2="535" y2="142"/><line x1="475" y1="160" x2="535" y2="160"/><line x1="545" y1="70" x2="605" y2="70"/><line x1="545" y1="70" x2="605" y2="88"/><line x1="545" y1="70" x2="605" y2="106"/><line x1="545" y1="70" x2="605" y2="124"/><line x1="545" y1="70" x2="605" y2="142"/><line x1="545" y1="70" x2="605" y2="160"/><line x1="545" y1="88" x2="605" y2="70"/><line x1="545" y1="88" x2="605" y2="88"/><line x1="545" y1="88" x2="605" y2="106"/><line x1="545" y1="88" x2="605" y2="124"/><line x1="545" y1="88" x2="605" y2="142"/><line x1="545" y1="88" x2="605" y2="160"/><line x1="545" y1="106" x2="605" y2="70"/><line x1="545" y1="106" x2="605" y2="88"/><line x1="545" y1="106" x2="605" y2="106"/><line x1="545" y1="106" x2="605" y2="124"/><line x1="545" y1="106" x2="605" y2="142"/><line x1="545" y1="106" x2="605" y2="160"/><line x1="545" y1="124" x2="605" y2="70"/><line x1="545" y1="124" x2="605" y2="88"/><line x1="545" y1="124" x2="605" y2="106"/><line x1="545" y1="124" x2="605" y2="124"/><line x1="545" y1="124" x2="605" y2="142"/><line x1="545" y1="124" x2="605" y2="160"/><line x1="545" y1="142" x2="605" y2="70"/><line x1="545" y1="142" x2="605" y2="88"/><line x1="545" y1="142" x2="605" y2="106"/><line x1="545" y1="142" x2="605" y2="124"/><line x1="545" y1="142" x2="605" y2="142"/><line x1="545" y1="142" x2="605" y2="160"/><line x1="545" y1="160" x2="605" y2="70"/><line x1="545" y1="160" x2="605" y2="88"/><line x1="545" y1="160" x2="605" y2="106"/><line x1="545" y1="160" x2="605" y2="124"/><line x1="545" y1="160" x2="605" y2="142"/><line x1="545" y1="160" x2="605" y2="160"/></g>
+<g fill="#fff" stroke="#111" stroke-width="1"><circle cx="470" cy="70" r="5"/><circle cx="470" cy="88" r="5"/><circle cx="470" cy="106" r="5"/><circle cx="470" cy="124" r="5"/><circle cx="470" cy="142" r="5"/><circle cx="470" cy="160" r="5"/><circle cx="540" cy="70" r="5"/><circle cx="540" cy="88" r="5"/><circle cx="540" cy="106" r="5"/><circle cx="540" cy="124" r="5"/><circle cx="540" cy="142" r="5"/><circle cx="540" cy="160" r="5"/><circle cx="610" cy="70" r="5"/><circle cx="610" cy="88" r="5"/><circle cx="610" cy="106" r="5"/><circle cx="610" cy="124" r="5"/><circle cx="610" cy="142" r="5"/><circle cx="610" cy="160" r="5"/></g>
+<text x="470" y="178" font-size="12.5" text-anchor="middle">392</text><text x="540" y="178" font-size="12.5" text-anchor="middle">392</text><text x="610" y="178" font-size="12.5" text-anchor="middle">256</text>
+<text x="540" y="192" font-size="11" text-anchor="middle" fill="#555">dense read-out: BatchNorm, ReLU, dropout</text>
+<line x1="620" y1="115" x2="660" y2="115" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+<g fill="#888"><rect x="670" y="126" width="5" height="14"/><rect x="677" y="114" width="5" height="26"/><rect x="684" y="132" width="5" height="8"/><rect x="691" y="120" width="5" height="20"/><rect x="698" y="134" width="5" height="6"/><rect x="705" y="108" width="5" height="32"/><rect x="712" y="129" width="5" height="11"/><rect x="719" y="123" width="5" height="17"/></g>
+<line x1="666" y1="140" x2="728" y2="140" stroke="#111" stroke-width=".8"/>
+<text x="697" y="178" font-size="12.5" text-anchor="middle">138 odour words</text>
+<g transform="translate(0,215)">
+
+<rect x="6" y="30" width="758" height="205" rx="6" fill="none" stroke="#bbb" stroke-dasharray="5 4"/>
+<text x="14" y="22" font-size="14" font-weight="600">(b) Pony: 0.117 M parameters</text>
+<g transform="translate(0,-95)">
+<!-- molecule graph -->
+<g stroke="#111" stroke-width="1.3" fill="#fff">
+  <line x1="40" y1="225" x2="62" y2="198"/><line x1="62" y1="198" x2="94" y2="205"/><line x1="94" y1="205" x2="104" y2="236"/>
+  <line x1="104" y1="236" x2="80" y2="258"/><line x1="80" y1="258" x2="48" y2="250"/><line x1="48" y1="250" x2="40" y2="225"/>
+  <line x1="94" y1="205" x2="112" y2="182"/>
+  <circle cx="40" cy="225" r="6"/><circle cx="62" cy="198" r="6"/><circle cx="94" cy="205" r="6"/><circle cx="104" cy="236" r="6"/>
+  <circle cx="80" cy="258" r="6"/><circle cx="48" cy="250" r="6"/><circle cx="112" cy="182" r="6" fill="#ddd"/>
+</g>
+<text x="74" y="292" font-size="12.5" text-anchor="middle">molecule <tspan font-style="italic">m</tspan></text>
+
+
+<line x1="124" y1="225" x2="152" y2="225" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+
+<!-- message passing -->
+<g stroke="#2b5c8a" stroke-width="1.3" fill="#dfe9f3">
+  <line x1="170" y1="225" x2="192" y2="198"/><line x1="192" y1="198" x2="224" y2="205"/><line x1="224" y1="205" x2="234" y2="236"/>
+  <line x1="234" y1="236" x2="210" y2="258"/><line x1="210" y1="258" x2="178" y2="250"/><line x1="178" y1="250" x2="170" y2="225"/>
+  <line x1="224" y1="205" x2="242" y2="182"/>
+  <circle cx="170" cy="225" r="7"/><circle cx="192" cy="198" r="7"/><circle cx="224" cy="205" r="7"/><circle cx="234" cy="236" r="7"/>
+  <circle cx="210" cy="258" r="7"/><circle cx="178" cy="250" r="7"/><circle cx="242" cy="182" r="7"/>
+</g>
+<g stroke="#2b5c8a" stroke-width="1" fill="none">
+  <path d="M196 204 Q207 196 218 202" marker-end="url(#a3)"/><path d="M229 214 Q236 222 233 228" marker-end="url(#a3)"/><path d="M204 255 Q192 258 184 253" marker-end="url(#a3)"/>
+</g>
+<text x="206" y="292" font-size="12.5" text-anchor="middle">message passing</text>
+<text x="206" y="307" font-size="11" text-anchor="middle" fill="#555">3 rounds along bonds</text>
+
+<line x1="254" y1="225" x2="282" y2="225" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+
+<!-- atom vectors H_j -->
+<g stroke="#2b5c8a" stroke-width=".8">
+  <g fill="#dfe9f3"><rect x="290" y="160" width="9" height="9"/><rect x="299" y="160" width="9" height="9" fill="#9fbbd6"/><rect x="308" y="160" width="9" height="9"/><rect x="317" y="160" width="9" height="9" fill="#5f8fbd"/><rect x="326" y="160" width="9" height="9"/></g>
+  <g fill="#dfe9f3"><rect x="290" y="180" width="9" height="9" fill="#5f8fbd"/><rect x="299" y="180" width="9" height="9"/><rect x="308" y="180" width="9" height="9" fill="#9fbbd6"/><rect x="317" y="180" width="9" height="9"/><rect x="326" y="180" width="9" height="9"/></g>
+  <g fill="#dfe9f3"><rect x="290" y="200" width="9" height="9"/><rect x="299" y="200" width="9" height="9"/><rect x="308" y="200" width="9" height="9" fill="#5f8fbd"/><rect x="317" y="200" width="9" height="9" fill="#9fbbd6"/><rect x="326" y="200" width="9" height="9"/></g>
+  <g fill="#dfe9f3"><rect x="290" y="220" width="9" height="9" fill="#9fbbd6"/><rect x="299" y="220" width="9" height="9" fill="#5f8fbd"/><rect x="308" y="220" width="9" height="9"/><rect x="317" y="220" width="9" height="9"/><rect x="326" y="220" width="9" height="9" fill="#9fbbd6"/></g>
+  <g fill="#dfe9f3"><rect x="290" y="240" width="9" height="9"/><rect x="299" y="240" width="9" height="9" fill="#9fbbd6"/><rect x="308" y="240" width="9" height="9"/><rect x="317" y="240" width="9" height="9"/><rect x="326" y="240" width="9" height="9" fill="#5f8fbd"/></g>
+  <g fill="#dfe9f3"><rect x="290" y="260" width="9" height="9" fill="#9fbbd6"/><rect x="299" y="260" width="9" height="9"/><rect x="308" y="260" width="9" height="9"/><rect x="317" y="260" width="9" height="9" fill="#5f8fbd"/><rect x="326" y="260" width="9" height="9"/></g>
+</g>
+<text x="312" y="292" font-size="12.5" text-anchor="middle">atom vectors <tspan font-style="italic">H</tspan><tspan font-size="9" dy="3">j</tspan></text>
+<text x="312" y="307" font-size="11" text-anchor="middle" fill="#555">64 numbers per atom</text>
+
+<!-- attention scores -->
+<g stroke="#b5452c" stroke-width="1">
+  <circle cx="372" cy="164.5" r="5.5" fill="#b5452c" fill-opacity=".15"/><circle cx="372" cy="184.5" r="5.5" fill="#b5452c" fill-opacity=".9"/>
+  <circle cx="372" cy="204.5" r="5.5" fill="#b5452c" fill-opacity=".35"/><circle cx="372" cy="224.5" r="5.5" fill="#b5452c" fill-opacity=".1"/>
+  <circle cx="372" cy="244.5" r="5.5" fill="#b5452c" fill-opacity=".6"/><circle cx="372" cy="264.5" r="5.5" fill="#b5452c" fill-opacity=".2"/>
+</g>
+<g stroke="#b5452c" stroke-width=".9">
+  <line x1="337" y1="164.5" x2="364" y2="164.5"/><line x1="337" y1="184.5" x2="364" y2="184.5"/><line x1="337" y1="204.5" x2="364" y2="204.5"/>
+  <line x1="337" y1="224.5" x2="364" y2="224.5"/><line x1="337" y1="244.5" x2="364" y2="244.5"/><line x1="337" y1="264.5" x2="364" y2="264.5"/>
+</g>
+<text x="372" y="140" font-size="12.5" text-anchor="middle" fill="#b5452c">attention</text>
+<text x="372" y="152" font-size="11" text-anchor="middle" fill="#b5452c"><tspan font-style="italic">s</tspan><tspan font-size="8.5" dy="-4">0</tspan><tspan font-size="8.5" dx="-4.5" dy="7">j</tspan><tspan dy="-3"> = </tspan><tspan font-style="italic">H</tspan><tspan font-size="8.5" dy="3">j</tspan><tspan dy="-3">·</tspan><tspan font-style="italic">u</tspan><tspan font-size="8.5" dy="3">0</tspan></text>
+
+<!-- sum -->
+<g stroke="#111" stroke-width="1" fill="none">
+  <line x1="378" y1="164.5" x2="424" y2="208"/><line x1="378" y1="184.5" x2="423" y2="211"/><line x1="378" y1="204.5" x2="422" y2="213"/>
+  <line x1="378" y1="224.5" x2="422" y2="217"/><line x1="378" y1="244.5" x2="423" y2="219"/><line x1="378" y1="264.5" x2="424" y2="222"/>
+</g>
+<circle cx="434" cy="215" r="12" fill="#fff" stroke="#111" stroke-width="1.2"/>
+<text x="434" y="220" font-size="15" text-anchor="middle">Σ</text>
+<text x="434" y="246" font-size="11" text-anchor="middle" fill="#555">weighted</text>
+<text x="434" y="258" font-size="11" text-anchor="middle" fill="#555">sum</text>
+<line x1="446" y1="215" x2="478" y2="215" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+
+<!-- v(m) -->
+<g stroke="#2b5c8a" stroke-width=".9">
+  <rect x="486" y="187" width="8" height="8" fill="#9fbbd6"/><rect x="486" y="195" width="8" height="8" fill="#dfe9f3"/><rect x="486" y="203" width="8" height="8" fill="#5f8fbd"/>
+  <rect x="486" y="211" width="8" height="8" fill="#dfe9f3"/><rect x="486" y="219" width="8" height="8" fill="#9fbbd6"/><rect x="486" y="227" width="8" height="8" fill="#5f8fbd"/><rect x="486" y="235" width="8" height="8" fill="#dfe9f3"/>
+</g>
+<text x="490" y="270" font-size="12.5" text-anchor="middle"><tspan font-style="italic">v</tspan>(<tspan font-style="italic">m</tspan>)</text>
+<text x="490" y="284" font-size="11" text-anchor="middle" fill="#555">hidden, 64</text>
+
+<!-- word head -->
+<line x1="498" y1="215" x2="660" y2="215" stroke="#111" stroke-width="1.2" marker-end="url(#a1)"/>
+<text x="579" y="207" font-size="11" text-anchor="middle" fill="#555">one linear layer</text>
+<g fill="#888"><rect x="670" y="226" width="5" height="14"/><rect x="677" y="214" width="5" height="26"/><rect x="684" y="232" width="5" height="8"/><rect x="691" y="220" width="5" height="20"/><rect x="698" y="234" width="5" height="6"/><rect x="705" y="208" width="5" height="32"/><rect x="712" y="229" width="5" height="11"/><rect x="719" y="223" width="5" height="17"/></g>
+<line x1="666" y1="240" x2="728" y2="240" stroke="#111" stroke-width=".8"/>
+<text x="697" y="292" font-size="12.5" text-anchor="middle">138 odour words</text>
+</g>
+</g></svg>
+</div>
+<figcaption><b>Figure 1.</b> The two networks. (a) Open-POM: five rounds of message passing, set2set pooling by an LSTM, and a three-layer dense read-out. (b) Pony: three rounds of message passing, attention (red) that scores each atom and pools the atom vectors into the molecule vector, and one linear head. Pony (w/o attention) uses equal atom scores.</figcaption>
+</figure>
+<p>Table A1 in the appendix compares the two stage by stage, and Figure 2 (Section 2.4) shows how Pony combines molecules into a mixture. Pony keeps open-POM's input and message passing, and removes what is not needed for mixtures: two rounds of message passing, the LSTM pooling, and the deep dense read-out. Taken out of open-POM one at a time, none of these changes its mixture prediction (Table A3). Pony (w/o attention) addresses memorization: its memorization gap is 0.025, against 0.069 for open-POM (Table A1). It is small, learns from single molecules only, and is then frozen. Everything fitted on DREAM, 133 numbers per copy (Section 2.5), acts on molecular structure, never on a molecule's identity. Its middle layer is shaped for mixing:</p>
+<ul>
+<li><b>Mix in the hidden layer, not in word space.</b> A mixture is a combined pattern across the 64 hidden units.</li>
+<li><b>A simple path to the words.</b> The hidden layer is centred and followed by one linear layer.</li>
+<li><b>Similarity is measured by both a learned direction and a learned length.</b> A molecule vector's raw length was never trained to mean anything for mixtures, and keeping it when mixing made results worse (T46 0.454 against 0.467, V50 0.566 against 0.593, with attention-based molecule weights and only the slope and intercept fitted). Each molecule therefore enters a mixture as a unit direction (Section 2.4). Length is not dropped from the odour distance: each mixture gets a learned length instead, so the distance uses both direction and length.</li>
+</ul>
+<h3>Attention: chemical groups, encoded inside the network</h3>
+<p>In Section 1.2, dominance came from 24 predefined chemical groups. A chemical group is a small set of atoms in a particular arrangement. After message passing, each atom vector $H_j\in\mathbb{R}^{64}$ already describes its atom together with its neighbourhood. So instead of handing groups to the model, we add one small part to Pony (w/o attention), a scorer over atoms:</p>
+<div class="eq">$$s^0_j = H_j\cdot u_0,\qquad \alpha_j=\frac{\exp(s^0_j)}{\sum_{j'\in m}\exp(s^0_{j'})}$$</div>
+<p>Pony gives one vector of 64 numbers for each molecule. It is the representation of a single molecule: Pony computes it from that molecule alone and knows nothing about the mixture the molecule is in.</p>
+<div class="eq">$$v(m)=\sum_{j\in m}\alpha_j H_j$$</div>
+<p>The scorer $u_0\in\mathbb{R}^{64}$ is a learnable weight vector, shared by all atoms and trained with the rest of Pony by the same word loss, so it learns which atoms decide a molecule's odour words. Section 1.2 handed the model 24 chemical groups; here the network can find the important atom neighbourhoods itself.</p>
+<p>In Figure 1(b), attention is the red part. Each atom vector (a blue bar) gets one score (a red circle; darker means a higher score), and the scores are the weights of the sum $\Sigma$ that turns the atom vectors into the molecule vector. Pony (w/o attention) has the same drawing with all circles equal.</p>
+<p>The scorer is trained with the network on single molecules, so it never sees a mixture rating. Inside the network, attention only pools the atoms of each molecule; the ablation in Section 2.7 (Table 6) compares Pony without and with it.</p>
+<h4>In mixtures: rebalancing the atom scores with the mixture ratings</h4>
+<p>The scorer $u_0$ learned which atoms decide a molecule's own odour words. In a mixture the question is different: which atoms decide how strongly a molecule shows through the others. The two need not coincide. Some atoms may matter more in a blend than in a single molecule's words, and the scale of the scores, which only had to rank atoms within one molecule, need not suit a comparison between molecules. When Pony is used for mixtures, we therefore add one term that rebalances the atom scores with the distance ratings of the DREAM mixtures: a scale $\beta$ and a small correction $\delta\in\mathbb{R}^{64}$,</p>
+<div class="eq">$$s_j=H_j\cdot u,\qquad u=\beta\,u_0+\delta$$</div>
+<p>$\delta$ is penalized toward zero in the loss, so at $\delta=0$ the scorer keeps the direction of the single-molecule scorer $u_0$ and $\beta$ only sets its scale; $u_0$ and the rest of Pony stay frozen. Every number here is shared by all atoms of all molecules, so the strength is computed from structure and is hard to memorize per molecule from 820 rated pairs (Section 2.1). The model can learn "atoms that look like this are strong" rather than "this molecule is strong", and a molecule it has never seen gets its score the same way.</p>
+<h4>Why no self-attention between atoms</h4>
+<p>We leave self-attention between atoms out because it would add capacity that the single-molecule data cannot justify, for little that message passing does not already provide. Each atom vector $H_j$ already takes in every atom within three bonds, which covers 71% of the atom pairs in a DREAM molecule (median 10 heavy atoms). Self-attention would add only the remaining long-range pairs, and it would be trained, like the rest of Pony, on 3,975 single molecules. Open-POM already has one step in which all atoms of a molecule interact by content, its LSTM pooling. Replacing it with a plain average over atoms leaves held-out accuracy (0.890), the memorization gap (0.069) and mixture prediction unchanged (Table A3). We therefore keep one shared scorer over atoms and leave long-range interactions between atoms for when more data exist.</p>
+
+<h2>2.4 An additive mixture representation: learned shares and a learned length</h2>
+<p>Pony represents a single molecule, but every DREAM example is a pair of mixtures, so the model needs a rule that turns molecular embeddings into a mixture representation. The Principal Odor Map does not supply one: its authors note that the map "does not provide clear guidance about how stimuli can be mixed to produce new percepts" (Lee et al., 2023). The open-POM model of the DREAM paper therefore combines molecules at the output, averaging their predicted word probabilities (Satarifard et al., 2026); this is our Open-POM avg. Pooling at the output has two drawbacks. Each word score is a probability, so averaging a molecule that is surely "fruity" with one that surely is not gives a middle value, the same as averaging two uncertain molecules. And the 138 words keep only what the vocabulary names.</p>
+
+<h3>Step 1: pool unit directions in the embedding, by addition</h3>
+<p>We pool in the embedding, the receptor-like layer of Section 2.3, so that molecules are combined where the nose combines them rather than after each has been translated into words. Because Pony's read-out is linear, a sum of embeddings is read as a sum of word scores. The same additive form, compared by angle, is what Snitz et al. (2013) and Ravia et al. (2020) found to work with hand-made molecular descriptors.</p>
+<p>Before adding, we scale each embedding to unit length. In a sum, a molecule's pull is the norm of its embedding, and training on odour words never tied that norm to strength, so unnormalized pooling would give each molecule an accidental strength. Hand-made descriptors avoid this by sharing a common scale. Unlike the mixture magnitude of Section 1.4, which measures how much the molecules agree, this per-molecule norm carries no trained meaning.</p>
+<p>Each molecule thus enters as its direction $\hat v(m)$, the mixture vector $z(A)$ averages the directions of the $n_A$ molecules in $A$, and two mixtures $A$ and $B$ are compared by the distance between their normalized mixture vectors. The distance is a number with no units, while ratings run from 0 (indistinguishable) to 1 (maximally different), so a linear map with slope $a$ and intercept $c$, fitted on the ratings, converts one into the other:</p>
+<div class="eq">$$\hat v(m)=\frac{v(m)}{\|v(m)\|},\qquad z(A)=\frac{1}{n_A}\sum_{m\in A}\hat v(m)$$</div>
+<div class="eq">$$d(A,B)=\left\|\frac{z(A)}{\|z(A)\|}-\frac{z(B)}{\|z(B)\|}\right\|,\qquad \hat y(A,B)=a\,d(A,B)+c$$</div>
+<p>In this form every molecule of a mixture counts the same: each direction $\hat v(m)$ enters with the same weight $1/n_A$. Step 2 replaces this equal weight with a learned share $\pi_A(m)$ for each molecule.</p>
+
+<h3>Step 2: a learned distance between mixtures</h3>
+<p>In Step 1 the distance $d(A,B)$ is fixed: nothing in it is learned from the mixture ratings. The only two numbers fitted on the ratings are the slope $a$ and intercept $c$ that convert the distance into the rating scale, $\hat y(A,B)=a\,d(A,B)+c$. Two observations about the ratings show where this fixed distance is wrong.</p>
+
+<p><b>Observation 1: some molecules dominate a mixture through a few key chemical groups.</b> In Step 1 every molecule counts the same, but in a mixture odorants do not take equal turns. Odorants in a mixture partly mask one another (Cain, 1975), and people are hardly able to identify more than three odorants in a mixture of up to eight (Laing and Francis, 1989; reviewed by Thomas-Danguin et al., 2014). Part of this happens already at the nose, where one odorant can suppress the receptor response to another (Reddy et al., 2018). Which odorant wins may also depend on its company: it has been proposed that mixtures of similar odours are more likely to be perceived as one configural whole (reviewed by Thomas-Danguin et al., 2014). At the receptors, odorants that bind the same receptors compete for them (Rospars et al., 2008). Session 1 found dominance in the DREAM ratings too: the fitted group weights favour benzene rings, aldehydes and aromatic nitrogen (Section 1.2), and on their own they raise cross-validated r from 0.392 to 0.400. Which molecule dominates is written in its structure, and in how it differs from the rest of its mixture.</p>
+<p><b>Observation 2: averaging exaggerates olfactory white.</b> Large mixtures do tend to smell alike: with about 30 components of equal intensity that span odour space, most mixtures that share no molecule smell alike, a percept called olfactory white (Weiss et al., 2012). However, in the DREAM ratings this effect is mild: the rated difference falls with mixture size at r −0.233. Averaging unit directions makes it more than twice as strong, at r −0.585. The more directions are averaged, the closer the result moves to the same middle direction, so large mixtures end up close largely regardless of what they contain. The averaged model therefore calls large mixtures more alike than people do, and discards the differences between them that people still perceive. A better model should let mixture size pull mixtures together only as much as the ratings show, and keep what tells one large mixture from another.</p>
+<p><b>Design objective 1: a relative weight for each molecule</b> (from Observation 1). Dominance is about the importance of a molecule relative to the others in the same mixture. The model needs a weight per molecule, normalized within the mixture. Because the weights are shares that sum to one and the mixture vector is normalized before comparison, they decide where the mixture points; its length is set separately (Design objective 2).</p>
+<p><i>Score the strength of a molecule.</i> We have no measured strength for the molecules, and we do not want to list by hand which ones dominate, so the model learns strength from structure alone. A molecule's smell is often set by a few decisive atoms rather than by its size, such as an aldehyde or an aromatic nitrogen, groups that the weights of Section 1.2 favour. Pony already scores every atom $j$ of a molecule: $s_j=H_j\cdot u$, where $H_j$ is the atom's vector and $u=\beta u_0+\delta$ the scorer rebalanced on the mixture ratings (Section 2.3). We turn the scores of a molecule's $T_m$ atoms into one number, the molecule's strength score $\ell(m)$, by a soft maximum with temperature $\tau$:</p>
+<div class="eq">$$\ell(m)=\tau\,\log\Big(\frac{1}{T_m}\sum_{j\in m}e^{\,s_j/\tau}\Big)$$</div>
+<p>So $\ell(m)$ is one number per molecule, not per atom: for small $\tau$ it approaches the score of the molecule's strongest atom, $\max_{j\in m}s_j$, and larger $\tau$ lets the other atoms count more. The strength score is not a measured quantity: only its differences within a mixture matter, and they are fitted to the mixture ratings through the shared scorer $u$ and the temperature $\tau$.</p>
+<p>This is log-sum-exp pooling, as used by Pinheiro and Collobert (2015) for weakly supervised image segmentation. There, only image-level labels are known, and the image score must come from a few decisive pixels: a hard maximum trains poorly, and an average dilutes the decisive pixels among the rest. The soft maximum lies in between, moving from the average ($\tau\to\infty$) to the maximum ($\tau\to 0$). Our setting has the same structure. Only a molecule-level effect is observed in the mixture ratings, and it comes from a few decisive atoms. The soft maximum lets those atoms set the strength, and unlike a sum it does not make a large molecule strong just because it has many atoms. The temperature $\tau$ is fitted on the ratings.</p>
+<p><i>Model the relative strength of a molecule in its mixture.</i> The strength score is computed from the molecule alone, so it cannot know the company the molecule keeps, which Observation 1 says also matters. We measure how a molecule differs from its company by leaving it out: we add the cosine between the molecule's embedding $v(m)$ and the mean embedding $\bar v_{A\setminus m}$ of the other molecules in its mixture $A$, with one fitted weight $\kappa$. Its sign is learned: $\kappa<0$ lets a molecule unlike its company stand out, $\kappa>0$ favours one that blends in.</p>
+<div class="eq">$$\omega_A(m)=\exp\Big(\ell(m)+\kappa\,\cos\big(v(m),\,\bar v_{A\setminus m}\big)\Big)$$</div>
+<p>Only the share of each molecule within its mixture should matter, so we normalize these weights within the mixture. The shares replace the equal weights of Step 1 and pool the unit directions $\hat v(m)=v(m)/\|v(m)\|$:</p>
+<div class="eq">$$\pi_A(m)=\frac{\omega_A(m)}{\sum_{m'\in A}\omega_A(m')},\qquad z(A)=\sum_{m\in A}\pi_A(m)\,\hat v(m)$$</div>
+<p>This is the same operation Pony uses inside a molecule, one level up. Inside a molecule, atom vectors $H_j$ are weighted by atom shares $\alpha_j$ into the molecule embedding $v(m)$. Inside a mixture, molecule directions $\hat v(m)$ are weighted by molecule shares $\pi_A(m)$ into the mixture vector $z(A)$.</p>
+<p>Multiplying a unit direction by a weight is the same as giving the molecule a vector of that length. So $\pi_A(m)$ is a learned, relative length for each molecule, in place of the accidental one removed in Step 1. Figure 2 shows how a molecule enters its mixture, including the mixture length of Design objective 2.</p>
+<figure>
+<div class="wide">
+<svg viewBox="0 0 900 336" role="img" aria-label="One molecule m inside mixture A. Its atom scores are compared and their soft maximum gives the strength score; its embedding is compared with the mean of the other molecules (odd one out, from below); the two give a weight, which is normalized against the other molecules into a share; the share scales the molecule direction, which is summed with the other molecules into the mixture direction, and a learned length scales it."><defs>
+<marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#111"/></marker>
+<marker id="c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b5452c"/></marker>
+<marker id="c3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2b5c8a"/></marker>
+<marker id="c4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8a8a86"/></marker>
+</defs><rect x="330" y="10" width="420" height="26" rx="5" fill="#f3f3f1" stroke="#8a8a86"/><text x="540.0" y="27.5" font-size="14.8" text-anchor="middle" fill="#555">other molecules of mixture <tspan font-style="italic">A</tspan></text><text x="150.0" y="70.0" font-size="15.3" text-anchor="middle" fill="#b5452c" font-weight="600">molecule <tspan font-style="italic">m</tspan>: atom scores <tspan font-style="italic">s</tspan><tspan dy="3.5" font-size="9"><tspan font-style="italic">j</tspan></tspan><tspan dy="-3.5"> </tspan></text><line x1="52" y1="140" x2="82" y2="124" stroke="#999" stroke-width="1.4"/><line x1="82" y1="124" x2="112" y2="140" stroke="#999" stroke-width="1.4"/><line x1="112" y1="140" x2="112" y2="174" stroke="#999" stroke-width="1.4"/><line x1="112" y1="174" x2="82" y2="190" stroke="#999" stroke-width="1.4"/><line x1="82" y1="190" x2="52" y2="174" stroke="#999" stroke-width="1.4"/><line x1="52" y1="174" x2="52" y2="140" stroke="#999" stroke-width="1.4"/><line x1="112" y1="174" x2="142" y2="190" stroke="#999" stroke-width="1.4"/><circle cx="52" cy="140" r="10" fill="#b5452c" fill-opacity="0.25" stroke="#b5452c" stroke-width="1"/><text x="52.0" y="144.0" font-size="11.8" text-anchor="middle" fill="#111">1</text><circle cx="82" cy="124" r="10" fill="#b5452c" fill-opacity="0.40" stroke="#b5452c" stroke-width="1"/><text x="82.0" y="128.0" font-size="11.8" text-anchor="middle" fill="#111">2</text><circle cx="112" cy="140" r="10" fill="#b5452c" fill-opacity="0.55" stroke="#b5452c" stroke-width="1"/><text x="112.0" y="144.0" font-size="11.8" text-anchor="middle" fill="#fff">3</text><circle cx="112" cy="174" r="10" fill="#b5452c" fill-opacity="0.95" stroke="#111" stroke-width="2.4"/><text x="112.0" y="178.0" font-size="11.8" text-anchor="middle" fill="#fff">4</text><circle cx="82" cy="190" r="10" fill="#b5452c" fill-opacity="0.45" stroke="#b5452c" stroke-width="1"/><text x="82.0" y="194.0" font-size="11.8" text-anchor="middle" fill="#111">5</text><circle cx="52" cy="174" r="10" fill="#b5452c" fill-opacity="0.20" stroke="#b5452c" stroke-width="1"/><text x="52.0" y="178.0" font-size="11.8" text-anchor="middle" fill="#111">6</text><circle cx="142" cy="190" r="10" fill="#b5452c" fill-opacity="0.65" stroke="#b5452c" stroke-width="1"/><text x="142.0" y="194.0" font-size="11.8" text-anchor="middle" fill="#fff">7</text><text x="112.0" y="214.0" font-size="13.0" text-anchor="middle" fill="#111">strongest atom</text><line x1="112" y1="204" x2="112" y2="186" stroke="#111" stroke-width=".8"/><path d="M178 250V225.5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3V250z" fill="#b5452c" fill-opacity="0.35"/><text x="185.0" y="264.0" font-size="11.8" text-anchor="middle" fill="#555">1</text><path d="M197 250V209.0a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3V250z" fill="#b5452c" fill-opacity="0.35"/><text x="204.0" y="264.0" font-size="11.8" text-anchor="middle" fill="#555">2</text><path d="M216 250V192.5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3V250z" fill="#b5452c" fill-opacity="0.35"/><text x="223.0" y="264.0" font-size="11.8" text-anchor="middle" fill="#555">3</text><path d="M235 250V148.5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3V250z" fill="#b5452c" fill-opacity="1"/><text x="242.0" y="264.0" font-size="11.8" text-anchor="middle" fill="#555">4</text><path d="M254 250V203.5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3V250z" fill="#b5452c" fill-opacity="0.35"/><text x="261.0" y="264.0" font-size="11.8" text-anchor="middle" fill="#555">5</text><path d="M273 250V231.0a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3V250z" fill="#b5452c" fill-opacity="0.35"/><text x="280.0" y="264.0" font-size="11.8" text-anchor="middle" fill="#555">6</text><path d="M292 250V181.5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3V250z" fill="#b5452c" fill-opacity="0.35"/><text x="299.0" y="264.0" font-size="11.8" text-anchor="middle" fill="#555">7</text><line x1="174" y1="250" x2="311" y2="250" stroke="#111" stroke-width=".8"/><text x="242.0" y="137.5" font-size="13.0" text-anchor="middle" fill="#111" font-weight="600">max</text><line x1="174" y1="169.4" x2="317" y2="169.4" stroke="#b5452c" stroke-width="1.6" stroke-dasharray="5 3"/><text x="244.5" y="282.0" font-size="13.0" text-anchor="middle" fill="#b5452c">soft max over the atoms: <tspan font-style="italic">ℓ</tspan>(<tspan font-style="italic">m</tspan>), the strength score</text><line x1="319" y1="169" x2="501" y2="169" stroke="#b5452c" stroke-width="1.6" marker-end="url(#c2)"/><text x="330.0" y="162.0" font-size="14.8" text-anchor="start" fill="#b5452c"><tspan font-style="italic">ℓ</tspan>(<tspan font-style="italic">m</tspan>)</text><text x="470.0" y="322.0" font-size="15.3" text-anchor="middle" fill="#b5452c" font-weight="600">odd one out</text><line x1="420" y1="292" x2="468" y2="242" stroke="#b5452c" stroke-width="1.8" marker-end="url(#c2)"/><text x="464.0" y="236.0" font-size="14.2" text-anchor="end" fill="#b5452c"><tspan font-style="italic">v</tspan>(<tspan font-style="italic">m</tspan>)</text><line x1="420" y1="292" x2="486" y2="278" stroke="#8a8a86" stroke-width="1.8" marker-end="url(#c4)"/><text x="490.0" y="284.0" font-size="14.2" text-anchor="start" fill="#555"><tspan font-style="italic">v</tspan>̄<tspan dy="3.5" font-size="9"><tspan font-style="italic">A</tspan>∖<tspan font-style="italic">m</tspan></tspan><tspan dy="-3.5"> </tspan></text><path d="M448 286 A28 28 0 0 0 440 271" fill="none" stroke="#111" stroke-width=".9"/><text x="456.0" y="278.0" font-size="12.4" text-anchor="start" fill="#111">cos</text><line x1="476" y1="246" x2="517" y2="188" stroke="#b5452c" stroke-width="1.4" marker-end="url(#c2)"/><text x="506.0" y="226.0" font-size="15.3" text-anchor="start" fill="#b5452c" font-style="italic">κ</text><circle cx="520" cy="169" r="18" fill="#fff" stroke="#b5452c" stroke-width="1.4"/><text x="520.0" y="173.0" font-size="14.8" text-anchor="middle" fill="#b5452c"><tspan font-style="italic">ω</tspan><tspan dy="3.5" font-size="9"><tspan font-style="italic">A</tspan></tspan><tspan dy="-3.5"> </tspan></text><text x="520.0" y="143.0" font-size="13.0" text-anchor="middle" fill="#b5452c">weight</text><line x1="538" y1="169" x2="581" y2="169" stroke="#b5452c" stroke-width="1.4" marker-end="url(#c2)"/><circle cx="600" cy="169" r="18" fill="#b5452c" fill-opacity=".18" stroke="#b5452c" stroke-width="1.4"/><text x="600.0" y="173.0" font-size="14.8" text-anchor="middle" fill="#b5452c"><tspan font-style="italic">π</tspan><tspan dy="3.5" font-size="9"><tspan font-style="italic">A</tspan></tspan><tspan dy="-3.5"> </tspan></text><text x="600.0" y="205.0" font-size="13.0" text-anchor="middle" fill="#b5452c">share</text><line x1="600" y1="36" x2="600" y2="149" stroke="#8a8a86" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#c4)"/><line x1="618" y1="169" x2="653" y2="169" stroke="#111" stroke-width="1.2" marker-end="url(#c1)"/><circle cx="665" cy="169" r="11" fill="#fff" stroke="#111"/><text x="665.0" y="173.5" font-size="15.3" text-anchor="middle" fill="#111">×</text><rect x="660.5" y="89.0" width="9" height="6" fill="#8a8a86" fill-opacity="0.35" stroke="#8a8a86" stroke-width=".6"/><rect x="660.5" y="95.0" width="9" height="6" fill="#8a8a86" fill-opacity="0.35" stroke="#8a8a86" stroke-width=".6"/><rect x="660.5" y="101.0" width="9" height="6" fill="#8a8a86" fill-opacity="0.6" stroke="#8a8a86" stroke-width=".6"/><rect x="660.5" y="107.0" width="9" height="6" fill="#8a8a86" fill-opacity="0.85" stroke="#8a8a86" stroke-width=".6"/><rect x="660.5" y="113.0" width="9" height="6" fill="#8a8a86" fill-opacity="0.15" stroke="#8a8a86" stroke-width=".6"/><rect x="660.5" y="119.0" width="9" height="6" fill="#8a8a86" fill-opacity="0.15" stroke="#8a8a86" stroke-width=".6"/><text x="665.0" y="79.0" font-size="14.2" text-anchor="middle" fill="#555"><tspan font-style="italic">v</tspan>̂(<tspan font-style="italic">m</tspan>)</text><line x1="665" y1="127" x2="665" y2="156" stroke="#111" stroke-width="1.2" marker-end="url(#c1)"/><line x1="676" y1="169" x2="712" y2="169" stroke="#111" stroke-width="2.2" marker-end="url(#c1)"/><circle cx="725" cy="169" r="13" fill="#fff" stroke="#111"/><text x="725.0" y="174.0" font-size="16.5" text-anchor="middle" fill="#111">Σ</text><line x1="725" y1="36" x2="725" y2="154" stroke="#8a8a86" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#c4)"/><text x="725.0" y="205.0" font-size="13.0" text-anchor="middle" fill="#111">merge</text><line x1="738" y1="169" x2="762" y2="169" stroke="#2b5c8a" stroke-width="1.6" marker-end="url(#c3)"/><rect x="766" y="151.0" width="9" height="6" fill="#2b5c8a" fill-opacity="0.85" stroke="#2b5c8a" stroke-width=".6"/><rect x="766" y="157.0" width="9" height="6" fill="#2b5c8a" fill-opacity="0.6" stroke="#2b5c8a" stroke-width=".6"/><rect x="766" y="163.0" width="9" height="6" fill="#2b5c8a" fill-opacity="0.35" stroke="#2b5c8a" stroke-width=".6"/><rect x="766" y="169.0" width="9" height="6" fill="#2b5c8a" fill-opacity="0.35" stroke="#2b5c8a" stroke-width=".6"/><rect x="766" y="175.0" width="9" height="6" fill="#2b5c8a" fill-opacity="0.85" stroke="#2b5c8a" stroke-width=".6"/><rect x="766" y="181.0" width="9" height="6" fill="#2b5c8a" fill-opacity="0.85" stroke="#2b5c8a" stroke-width=".6"/><text x="770.0" y="205.0" font-size="14.8" text-anchor="middle" fill="#2b5c8a"><tspan font-style="italic">ẑ</tspan>(<tspan font-style="italic">A</tspan>)</text><line x1="778" y1="169" x2="800" y2="169" stroke="#2b5c8a" stroke-width="1.6" marker-end="url(#c3)"/><rect x="802" y="155" width="58" height="28" rx="5" fill="#fff" stroke="#2e7d4f" stroke-width="1.4"/><text x="831.0" y="174.0" font-size="14.8" text-anchor="middle" fill="#2e7d4f">× <tspan font-style="italic">g</tspan>(<tspan font-style="italic">A</tspan>)</text><text x="831.0" y="205.0" font-size="13.0" text-anchor="middle" fill="#2e7d4f">length</text><line x1="860" y1="169" x2="896" y2="169" stroke="#2b5c8a" stroke-width="2.6" marker-end="url(#c3)"/></svg>
+</div>
+<figcaption><b>Figure 2.</b> How one molecule <i>m</i> enters the representation of its mixture <i>A</i>. Red, Objective 1: the atoms of <i>m</i> are scored (bars, numbered as in the drawing); their soft maximum, set mostly by the strongest atom, is the molecule's strength score <i>ℓ</i>(<i>m</i>). Below: its embedding <i>v</i>(<i>m</i>) is compared with the mean <i>v̄</i><sub><i>A</i>∖<i>m</i></sub> of the other molecules (odd one out), entering with weight <i>κ</i>. The two give a weight <i>ω</i><sub><i>A</i></sub>(<i>m</i>), normalized against the other molecules' weights into a share <i>π</i><sub><i>A</i></sub>(<i>m</i>). The share scales the molecule's direction <i>v̂</i>(<i>m</i>) (top), which is merged with the other molecules into the mixture direction (blue). Green, Objective 2: a learned length scales it. Dashed grey arrows: where the other molecules of the mixture come in. Scores are illustrative.</figcaption>
+</figure>
+
+<p><b>Design objective 2: an absolute length for each mixture</b> (from Observation 2). How close a mixture sits to olfactory white is a property of the mixture as a whole. The shares of Objective 1 cannot express it: they are normalized within the mixture, so they only decide where the mixture points. Averaging hides it as well, because every large mixture is pulled toward the same middle direction and normalizing to unit length then discards how far it was pulled. The model needs a length for each mixture, read from the direction that Objective 1 produces.</p>
+
+<p><i>Model the mixture length.</i> Session 1 already found that a mixture's magnitude belongs in the distance (Section 1.4). The simplest candidate, Pony's own vector length, does not help: used as the length, it moves cross-validated r only from 0.445 to 0.450, because it was never trained to carry information about mixtures. The length has to be learned.</p>
+<p>To see what a learned length changes, picture each mixture as a point in the embedding. In Step 1 every point lies on the unit sphere (Figure 3a), and the straight-line distance between two points on the sphere depends only on the angle between them, $\|\hat z(A)-\hat z(B)\|^2=2-2\cos\big(\hat z(A),\hat z(B)\big)$. We now let each point slide outward or inward along its own direction, to a length $g(A)$ (Figure 3b). Since the length should follow from what the mixture is, we compute it from the mixture's direction, through one learned vector $\gamma\in\mathbb{R}^{64}$ shared by all mixtures:</p>
+<div class="eq">$$\hat z(A)=\frac{z(A)}{\|z(A)\|},\qquad g(A)=\exp\big(\gamma\cdot\hat z(A)\big)$$</div>
+<p>A mixture that points along $\gamma$ gets a length above one and moves outward; one that points away from $\gamma$ gets a length below one and moves inward; the exponential keeps every length positive. Two mixtures are then compared by the ordinary Euclidean distance between the moved points:</p>
+<div class="eq">$$d(A,B)=\big\|\,g(A)\,\hat z(A)-g(B)\,\hat z(B)\,\big\|$$</div>
+<p>Why should the same angle count differently in different places? Human odour space is not uniform. The main axis of perceived differences between odours is pleasantness (Khan et al., 2007), and perceptual descriptions of odours are better fitted by a three-dimensional hyperbolic geometry than by a flat Euclidean one (Zhou et al., 2018). Mixing adds its own pattern: a strong component can mask the quality of the others (Cain and Drexler, 1974; reviewed by Thomas-Danguin et al., 2014), and large blends drift toward the shared percept of olfactory white (Weiss et al., 2012). A difference between two mixtures therefore matters more for some odour qualities than for others. $\gamma$ is a direction in Pony's pre-learned embedding: from the ratings it learns along which odour qualities differences between mixtures should be stretched, and along which shrunk.</p>
+<p>This distance sees more than the angle. In Figure 3 both pairs of mixtures are 30° apart, so in Step 1 both are 0.52 apart. With the learned length, the pair pointing along $\gamma$ is pushed to 0.92 and the pair pointing away is pulled to 0.29: the same angle now counts for more in some regions of the embedding and for less in others. Expanding the squared distance shows how length and angle combine:</p>
+<div class="eq">$$d(A,B)^2=\underbrace{\big(g(A)-g(B)\big)^2}_{\text{length difference}}+\underbrace{2\,g(A)\,g(B)\,\big(1-\cos(\hat z(A),\hat z(B))\big)}_{\text{angle, scaled by both lengths}}$$</div>
+<p>This is the lever Observation 2 needs. Averaging pulls large mixtures toward the same middle direction, where the angles between them are tiny and Step 1 calls them too alike. If the fit points $\gamma$ toward that region, mixtures there grow long and their small angles turn into larger distances again; whether and how far is decided by the ratings. Only the variation of the length across directions matters: a length equal for every mixture would only rescale $d(A,B)$, which the slope $a$ absorbs. With $\gamma=0$ every length is one and the distance compares directions only, with the learned shares of Objective 1.</p>
+
+<figure>
+<div class="wide">
+<svg viewBox="0 0 720 340" role="img" aria-label="Two panels. Left: in Step 1 every mixture lies on the unit circle and two pairs with the same angle are the same distance apart. Right: with a learned length, mixtures pointing along gamma move outward and those pointing away move inward, so the pair along gamma is farther apart and the pair pointing away is closer."><defs><marker id="lg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2e7d4f"/></marker></defs><text x="180.0" y="22.0" font-size="14" text-anchor="middle" fill="#111" font-weight="600">(a) Step 1: every mixture has length 1</text><circle cx="180" cy="200" r="70" fill="none" stroke="#bbb" stroke-dasharray="4 3"/><circle cx="180" cy="200" r="3" fill="#111"/><line x1="180" y1="200" x2="229.5" y2="150.5" stroke="#999" stroke-width=".9"/><circle cx="229.5" cy="150.5" r="5" fill="#b5452c"/><text x="241.5" y="160.3" font-size="13" text-anchor="middle" fill="#b5452c" font-style="italic">A</text><line x1="180" y1="200" x2="198.1" y2="132.4" stroke="#999" stroke-width=".9"/><circle cx="198.1" cy="132.4" r="5" fill="#b5452c"/><text x="187.9" y="129.4" font-size="13" text-anchor="middle" fill="#b5452c" font-style="italic">B</text><line x1="229.5" y1="150.5" x2="198.1" y2="132.4" stroke="#b5452c" stroke-width="2.6"/><text x="227.8" y="122.2" font-size="13" text-anchor="middle" fill="#b5452c" font-weight="600">d = 0.52</text><line x1="180" y1="200" x2="130.5" y2="249.5" stroke="#999" stroke-width=".9"/><circle cx="130.5" cy="249.5" r="5" fill="#2b5c8a"/><text x="118.5" y="249.7" font-size="13" text-anchor="middle" fill="#2b5c8a" font-style="italic">C</text><line x1="180" y1="200" x2="161.9" y2="267.6" stroke="#999" stroke-width=".9"/><circle cx="161.9" cy="267.6" r="5" fill="#2b5c8a"/><text x="172.1" y="280.6" font-size="13" text-anchor="middle" fill="#2b5c8a" font-style="italic">D</text><line x1="130.5" y1="249.5" x2="161.9" y2="267.6" stroke="#2b5c8a" stroke-width="2.6"/><text x="132.2" y="287.8" font-size="13" text-anchor="middle" fill="#2b5c8a" font-weight="600">d = 0.52</text><text x="540.0" y="22.0" font-size="14" text-anchor="middle" fill="#111" font-weight="600">(b) Learned length g(A) = exp(γ · ẑ(A))</text><circle cx="540" cy="200" r="70" fill="none" stroke="#bbb" stroke-dasharray="4 3"/><circle cx="540" cy="200" r="3" fill="#111"/><line x1="540" y1="200" x2="580.2" y2="130.3" stroke="#2e7d4f" stroke-width="2" marker-end="url(#lg)"/><text x="584.2" y="146.3" font-size="15" text-anchor="start" fill="#2e7d4f" font-style="italic">γ</text><line x1="540" y1="200" x2="628.4" y2="111.6" stroke="#999" stroke-width=".9"/><circle cx="628.4" cy="111.6" r="5" fill="#b5452c"/><text x="646.0" y="128.0" font-size="13" text-anchor="middle" fill="#b5452c" font-style="italic">A</text><line x1="540" y1="200" x2="572.3" y2="79.3" stroke="#999" stroke-width=".9"/><circle cx="572.3" cy="79.3" r="5" fill="#b5452c"/><text x="553.7" y="74.8" font-size="13" text-anchor="middle" fill="#b5452c" font-style="italic">B</text><line x1="628.4" y1="111.6" x2="572.3" y2="79.3" stroke="#b5452c" stroke-width="2.6"/><text x="615.6" y="74.1" font-size="13" text-anchor="middle" fill="#b5452c" font-weight="600">d = 0.92</text><line x1="540" y1="200" x2="512.3" y2="227.7" stroke="#999" stroke-width=".9"/><circle cx="512.3" cy="227.7" r="5" fill="#2b5c8a"/><text x="503.4" y="231.6" font-size="13" text-anchor="middle" fill="#2b5c8a" font-style="italic">C</text><line x1="540" y1="200" x2="529.9" y2="237.9" stroke="#999" stroke-width=".9"/><circle cx="529.9" cy="237.9" r="5" fill="#2b5c8a"/><text x="535.3" y="250.0" font-size="13" text-anchor="middle" fill="#2b5c8a" font-style="italic">D</text><line x1="512.3" y1="227.7" x2="529.9" y2="237.9" stroke="#2b5c8a" stroke-width="2.6"/><text x="507.4" y="261.4" font-size="13" text-anchor="middle" fill="#2b5c8a" font-weight="600">d = 0.29</text></svg>
+</div>
+<figcaption><b>Figure 3.</b> What the learned length does, drawn in two dimensions (the embedding has 64 dimensions; lengths are illustrative). Each dot is a mixture, at its direction times its length. Both pairs, <i>A</i>–<i>B</i> and <i>C</i>–<i>D</i>, have the same angle, 30°. <i>(a)</i> In Step 1 every mixture lies on the unit circle, so both pairs are the same distance apart. <i>(b)</i> The learned vector γ sets each mixture's length from its direction: mixtures that point along γ move outward, mixtures that point away move inward. <i>A</i>–<i>B</i> is pushed apart and <i>C</i>–<i>D</i> pulled together: the same angle now gives a larger distance in some regions of the embedding and a smaller one in others.</figcaption>
+</figure>
+
+<h2>2.5 Loss and two-stage training</h2>
+<p>Pony is trained in two stages, each on the data that can support it. The many single-molecule labels train the network, and the few mixture ratings tune only a small number of parameters on top of it.</p>
+<p><b>Stage 1: train the network on single molecules, then freeze it.</b> The network of Section 2.3, including its atom scorer $u_0$, is trained to predict the 138 odour words of 3,975 labelled molecules, with 1,008 held out. We use open-POM's loss, a class-weighted cross-entropy over the words, and its training recipe: Adam, 62 epochs, batch size 128, learning rate $10^{-3}$ halved every 640 steps, and small L1 and L2 penalties ($10^{-5}$). Ten copies are trained from different random starts. The network is then frozen, so no mixture rating ever changes it. Fine-tuning its 0.117 M parameters on 820 rated pairs would invite the memorization of Section 2.1, and every rated mixture is built from the same 234 molecules.</p>
+<p><b>Stage 2: fit the mixture parameters on DREAM.</b> Each DREAM pair $(A,B)$ comes with a rating $y(A,B)$, the perceived difference between the two mixtures on the 0-to-1 scale of Section 1.1. The predicted rating $\hat y(A,B)$ is a linear function of the distance $d(A,B)$. We fit the model by the mean squared error over the $N$ training pairs (all 820 for the test sets, fewer within a cross-validation fold), with an L2 penalty on the parameters fitted on mixtures:</p>
+<div class="eq">$$\mathcal{L}=\frac{1}{N}\sum_{(A,B)}\big(\hat y(A,B)-y(A,B)\big)^2+\lambda\big(\beta^2+\kappa^2+\|\delta\|^2+\|\gamma\|^2\big)$$</div>
+<p>$\beta$ and $\delta$ are the scale and the correction of the atom scorer (Section 2.3), $\kappa$ is the weight of the odd-one-out cosine and $\gamma$ the length vector (Section 2.4), and $\lambda=10^{-3}$ is the weight of the penalty. $\delta$ and $\gamma$ have 64 entries each and are fitted on at most 820 rated pairs, so the penalty shrinks them toward their defaults: $\delta=0$ keeps the direction of the single-molecule scorer, with $\beta$ setting its scale (as in L2-SP, Li et al., 2018), and $\gamma=0$ gives every mixture length one. $\beta$ and $\kappa$ get the same small penalty; the slope $a$, intercept $c$ and temperature $\tau$ are not penalized. The network stays frozen. In all, 133 numbers are fitted: $a$, $c$, $\beta$, $\kappa$, $\tau$ and the 64 entries each of $\delta$ and $\gamma$. They are fitted separately for each of the ten copies from Stage 1, and the ten predicted ratings of a pair are averaged.</p>
+<p>The loss is minimized with L-BFGS (Liu and Nocedal, 1989) and a strong Wolfe line search, for up to 300 iterations. It starts with $\beta$, $\kappa$, $\delta$ and $\gamma$ at zero and $\tau$ at one, so all molecules weigh the same and every mixture has length one; $a$ and $c$ start from least squares.</p>
+
+<h2>2.6 Results</h2>
+<p>The final model, Pony, combines the frozen network of Section 2.3 with the mixture representation and distance of Section 2.4 and the objective of Section 2.5. Table 4 places it next to the baselines.</p>
+<div class="wide">
+<table>
+<caption><b>Table 4.</b> Pony against the baselines.</caption>
+<thead><tr><th>Model</th><th>Year</th><th>T46</th><th>V50</th><th>CV</th></tr></thead>
+<tbody>
+<tr><td>Open-POM avg</td><td>2024</td><td>0.432</td><td>0.552</td><td>0.392</td></tr>
+<tr><td>D2Smell (DREAM team)</td><td>2024</td><td>0.469</td><td>0.165</td><td>—</td></tr>
+<tr><td>PL21 (DREAM team)</td><td>2024</td><td>0.346</td><td>0.071</td><td>—</td></tr>
+<tr><td>MIST avg</td><td>2025</td><td>0.407</td><td>0.547</td><td>0.386</td></tr>
+<tr><td>POMMix</td><td>2025</td><td>0.397</td><td>0.478</td><td>—</td></tr>
+<tr><td>Open-POM + both factors (Session 1, this blog)</td><td>2026</td><td>0.444</td><td>0.584</td><td>0.434</td></tr>
+<tr><td class="b">Pony (this blog)</td><td class="b">2026</td><td class="b">0.593</td><td class="b">0.622</td><td class="b">0.464</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">CV: 50 repeats of 5-fold cross-validation with whole mixtures held out. T46, V50: external test sets. POMMix: scored from its released checkpoints, which were not trained on DREAM. D2Smell and PL21: T46 from rerunning the teams' released models, which reproduce the DREAM paper's scores (the paper reports bootstrap medians, so its values differ by up to 0.007); V50 from the teams' published predictions, since neither code has a V50 path. These methods were not run in our cross-validation. All cross-validation rows in this page use the same 50 × 5 folds on the 514 development pairs, and all Pony rows average 10 copies of the network. Year: the open-POM model of the DREAM paper and the team entries were published by Satarifard et al. (2026); MIST (Wadell et al., 2025) and POMMix (Tom et al., 2025) from 2025.</p>
+<ul>
+<li><b>Pony is the best model on every column.</b> T46 0.593, V50 0.622 and cross-validation 0.464, against 0.444, 0.584 and 0.434 for the Session 1 model.</li>
+<li><b>The gain over averaging is large on the external sets.</b> Against the open-POM baseline, T46 rises from 0.432 to 0.593 and V50 from 0.552 to 0.622.</li>
+<li><b>Pony gets there with fewer parameters, not more.</b> Its network is 18 times smaller than open-POM and is never trained on mixtures, and only 133 numbers are fitted on the rated pairs, where fine-tuning MIST on the same pairs updates 26.7 M (Section 2.1, Table 5).</li>
+</ul>
+<div class="wide">
+<table>
+<caption><b>Table 5.</b> Pony in the data gap of Table 3. EPP = examples per parameter; Pony's 133 fitted numbers are counted per copy.</caption>
+<thead><tr><th>Model</th><th style="text-align:left">Labelled data</th><th>Examples</th><th>Parameters trained</th><th>EPP</th></tr></thead>
+<tbody>
+<tr><td colspan="5" style="text-align:left;font-style:italic">Odour: training on single molecules</td></tr>
+<tr><td>Open-POM</td><td style="text-align:left">molecules with odour words</td><td>3,975</td><td>2.09 M</td><td>0.0019</td></tr>
+<tr><td class="b">Pony (this blog)</td><td class="b" style="text-align:left">molecules with odour words</td><td class="b">3,975</td><td class="b">0.117 M</td><td class="b">0.034</td></tr>
+<tr class="sep"><td colspan="5" style="text-align:left;font-style:italic">Odour: training on mixture pairs</td></tr>
+<tr><td>MIST, fine-tuned on mixtures</td><td style="text-align:left">rated mixture pairs</td><td>820</td><td>26.7 M</td><td>0.000031</td></tr>
+<tr><td class="b">Pony (this blog)</td><td class="b" style="text-align:left">rated mixture pairs</td><td class="b">820</td><td class="b">133</td><td class="b">6.2</td></tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><b>Single molecules.</b> Pony has 0.034 training examples per parameter, next to ResNet-50's 0.050 on ImageNet and 18 times open-POM's. Both networks are trained on the same 3,975 molecules.</li>
+<li><b>Mixtures.</b> On the same 820 rated pairs, Pony has 6.2 examples per fitted number, against 0.000031 per parameter for MIST fine-tuned on mixtures: five orders of magnitude more data per parameter, because no network weight is trained on a mixture rating.</li>
+</ul>
+
+<h2>2.7 Ablation study</h2>
+<p>We take Pony apart in two ways: first in the order it was built (the backbone and its attention, then the terms of the mixture distance added one at a time), then by removing one part at a time from the full model.</p>
+
+<h3>Backbone and attention</h3>
+<p>Table 6 compares the backbones with nothing but a slope and an intercept fitted on DREAM, so that every molecule counts equally and only the representation differs.</p>
+<div class="wide">
+<table>
+<caption><b>Table 6.</b> The backbones, with molecules counted equally and only a line fitted on DREAM. EPP = single-molecule training examples (3,975) per parameter.</caption>
+<thead><tr><th>Backbone</th><th>Parameters</th><th>EPP</th><th>T46</th><th>V50</th><th>CV</th></tr></thead>
+<tbody>
+<tr><td>Open-POM (word profiles averaged)</td><td>2.09 M</td><td>0.0019</td><td>0.432</td><td>0.552</td><td>0.392</td></tr>
+<tr><td>Pony (w/o attention)</td><td>0.117 M</td><td>0.034</td><td>0.442</td><td>0.570</td><td>0.395</td></tr>
+<tr><td>Pony network</td><td>0.117 M</td><td>0.034</td><td class="b">0.451</td><td class="b">0.578</td><td class="b">0.399</td></tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><b>The smaller network is level with or above open-POM on every column,</b> with one eighteenth of the parameters.</li>
+<li><b>Attention as pooling improves every column.</b> Inside the molecule it raises T46 from 0.442 to 0.451, V50 from 0.570 to 0.578 and cross-validation from 0.395 to 0.399. Its larger role comes in the mixture, where its scores give each molecule a strength (Table 7).</li>
+</ul>
+
+<h3>Terms of the mixture distance</h3>
+<p>Table 7 builds the distance up from Step 1 of Section 2.4, one term at a time.</p>
+<div class="wide">
+<table>
+<caption><b>Table 7.</b> Building up the distance, one term at a time.</caption>
+<thead><tr><th>Model</th><th>Fitted on DREAM</th><th>T46</th><th>V50</th><th>CV</th></tr></thead>
+<tbody>
+<tr><td>Step 1: unit directions, equal weights</td><td>2</td><td>0.451</td><td>0.578</td><td>0.399</td></tr>
+<tr><td>+ odd one out ($\kappa$)</td><td>3</td><td>0.455</td><td>0.579</td><td>0.401</td></tr>
+<tr><td>+ strength from atom attention, scale $\beta$ only</td><td>4</td><td>0.483</td><td>0.603</td><td>0.416</td></tr>
+<tr><td>+ anchored correction ($\delta$, $\tau$)</td><td>69</td><td>0.551</td><td>0.599</td><td>0.445</td></tr>
+<tr><td class="b">+ mixture length ($\gamma$) = Pony</td><td class="b">133</td><td class="b">0.593</td><td class="b">0.622</td><td class="b">0.464</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">CV: 50 repeats of 5-fold cross-validation with whole mixtures held out. T46, V50: external test sets. Fitted on DREAM: how many numbers are fitted on the rated mixture pairs.</p>
+<ul>
+<li><b>Strength from atom attention.</b> One number, the scale $\beta$, lifts T46 from 0.455 to 0.483, V50 from 0.579 to 0.603 and cross-validation from 0.401 to 0.416.</li>
+<li><b>The anchored correction is the largest single step on T46 and in cross-validation.</b> T46 rises from 0.483 to 0.551 and cross-validation from 0.416 to 0.445; V50 stays level (0.603 and 0.599).</li>
+<li><b>The mixture length raises every column.</b> T46 from 0.551 to 0.593, V50 from 0.599 to 0.622 and cross-validation from 0.445 to 0.464.</li>
+<li><b>The odd-one-out term is small.</b> It adds 0.001 to 0.004 and is kept because it costs one number and is the only part of the weight that looks at a molecule's company.</li>
+</ul>
+
+
+<h3>Removing one part</h3>
+<p>Building up credits each part with its gain on top of the parts before it, so a part added early may take credit that a later part could also have earned. Table 8 checks this from the other side. It starts from the full Pony, removes one part (or, in the last row, two), holds it at its default and refits everything else.</p>
+<div class="wide">
+<table>
+<caption><b>Table 8.</b> Removing parts from Pony.</caption>
+<thead><tr><th>Model</th><th>Fitted on DREAM</th><th>T46</th><th>V50</th><th>CV</th></tr></thead>
+<tbody>
+<tr><td class="b">Pony</td><td class="b">133</td><td class="b">0.593</td><td class="b">0.622</td><td class="b">0.464</td></tr>
+<tr><td>− odd one out ($\kappa=0$)</td><td>132</td><td>0.594</td><td>0.618</td><td>0.458</td></tr>
+<tr><td>− anchored correction ($\delta=0$, $\tau=1$)</td><td>68</td><td>0.531</td><td>0.646</td><td>0.454</td></tr>
+<tr><td>− strength from atom attention ($\beta=0$, $\delta=0$, $\tau=1$)</td><td>67</td><td>0.479</td><td>0.616</td><td>0.437</td></tr>
+<tr><td>− mixture length ($\gamma=0$)</td><td>69</td><td>0.551</td><td>0.599</td><td>0.445</td></tr>
+<tr><td>− L2 penalty ($\lambda=0$)</td><td>133</td><td>0.339</td><td>0.405</td><td>0.009</td></tr>
+<tr><td>− odd one out and anchored correction ($\kappa=0$, $\delta=0$, $\tau=1$)</td><td>67</td><td>0.527</td><td>0.642</td><td>0.449</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">Removed parts are held at the values that switch them off; all other numbers are refitted from the same start.</p>
+
+<h3>Which parts matter most</h3>
+<p>Reading the two tables together:</p>
+<ol>
+<li><p><b>The L2 penalty is needed for the fitted parts to generalize.</b> Pony fits 133 numbers on 820 rated pairs, and 128 of them sit in two 64-entry vectors, $\delta$ and $\gamma$. Without a penalty these vectors fit the noise in the ratings: T46 falls from 0.593 to 0.339, V50 from 0.622 to 0.405, and cross-validation collapses from 0.464 to 0.009, because in many folds the length runs away on the training pairs. This is the largest drop in Table 8. The penalty pulls each vector toward the value that switches it off (Krogh and Hertz, 1991); for $\delta$ that value keeps the direction of the single-molecule scorer (L2-SP, Li et al., 2018). A vector then moves only as far as the ratings consistently ask.</p></li>
+<li><p><b>Atom attention helps in two roles: pooling inside the network, and strength in the mixture.</b> Inside the network, attention pools the atom vectors into the molecule vector, and in this role it improves every column: T46 from 0.442 to 0.451, V50 from 0.570 to 0.578 and cross-validation from 0.395 to 0.399 (Table 6). Its larger role is in the mixture. In a blend some odorants dominate and others are partly masked (Cain, 1975; Thomas-Danguin et al., 2014), partly because odorants compete at shared receptors (Reddy et al., 2018). Pony's attention was trained on 3,975 single molecules to find the atoms that drive a molecule's odour, and the same atom scores give each molecule its strength. Used as weights with only the slope and intercept fitted, they already lift T46 to 0.467 and V50 to 0.593. Built up, the single scale $\beta$ then adds 0.028 on T46, 0.024 on V50 and 0.015 in cross-validation, more per fitted number than any other part, and with the correction $\delta$, $\tau$ it gives about two-thirds of Pony's gain over Step 1 on T46 and in cross-validation (Table 7). Removing strength altogether ($\beta$, $\delta$ and $\tau$) costs 0.114 on T46 and 0.027 in cross-validation, the largest losses of any part apart from the penalty (Table 8). Attention therefore supplies the strength signal that the mixture readout relies on.</p></li>
+<li><p><b>The mixture length helps on every test set.</b> Large blends drift toward a shared percept (Weiss et al., 2012), so where a blend points says something about how distinct it still is. The length $g(A)$ lets $d(A,B)$ use this, stretching distances in some regions of the embedding and shrinking them in others. Adding it raises T46 by 0.042, V50 by 0.023 and cross-validation by 0.019. Because the length is the last part built up, Tables 7 and 8 make the same comparison here.</p></li>
+<li><p><b>The anchored correction helps T46 and costs V50.</b> The single-molecule scorer was trained to describe a molecule's odour, not to rank molecules within a blend. The correction $\delta$ lets the mixture ratings tilt it, and $\tau$ sets how far the strongest atom alone decides. Built up, these 65 numbers add 0.029 in cross-validation and 0.068 on T46. Removed, T46 drops by 0.062 and cross-validation by 0.010, but V50 rises from 0.622 to 0.646. The two test sets disagree here, and the V50 cost grows with the mixture length: without $\gamma$ the correction costs V50 0.004 (Table 7), with it 0.024 (Table 8). With 64 free entries tilting the scorer, it is the strength part fitted most directly to the DREAM ratings, and its gain carries over to T46 and to held-out development mixtures but not to V50.</p></li>
+<li><p><b>The odd-one-out term and the anchored correction act independently.</b> Both decide which molecule leads a mixture beyond what the frozen single-molecule scorer says, from two different sides. The correction $\delta$ looks at a molecule's own atoms. The odd-one-out term $\kappa$ looks at its company: mixtures of similar odours have been proposed to be more likely perceived as one whole (reviewed by Thomas-Danguin et al., 2014), so a molecule unlike the rest of its blend may count differently; the sign of $\kappa$ is fitted, not assumed. Removed alone, $\kappa$ lowers cross-validation from 0.464 to 0.458 and V50 from 0.622 to 0.618, and leaves T46 level (0.594). Removed together with the correction, the two losses add up: cross-validation falls to 0.449 and T46 to 0.527, while V50 rises to 0.642 as it does when the correction alone is removed. The model without either fits half the numbers (67) and is still above every baseline in Table 4, but it gives up 0.066 on T46 and 0.015 in cross-validation. Fitted on DREAM, these two parts sharpen the shares on the development mixtures and on T46. The one number $\kappa$ costs is repaid on every set but T46, where it is level.</p></li>
+</ol>
+<p>Read together, the two tables agree on the main points. Strength from atom attention and the mixture length improve every column in both. The anchored correction is the largest single step on T46 and in cross-validation but costs V50, so it is the part to watch when more mixture data arrive. The penalty, tested only in Table 8, is necessary.</p>
+
+<h2>2.8 Future work</h2>
+<p>Pony is shaped by how little mixture data exist: 820 rated pairs of 800 mixtures. With more rated mixtures, the network itself could be fine-tuned on mixtures rather than kept frozen, which may improve the results further. More data would also support the parts we left out: self-attention between atoms, for long-range and case-by-case interactions inside a molecule (Section 2.3), and learned interactions between particular molecules, such as one molecule suppressing a specific partner.</p>
+
+
+<h2 class="session">Conclusion</h2>
+<p>Predicting the perceptual similarity of odour mixtures is a low-data problem: a few thousand labelled molecules and 820 rated mixture pairs. In this regime a large pretrained odour model tends to memorize its training molecules, and averaging its predicted word profiles treats all components alike. We showed that structure, rather than scale, improves prediction. Pony is a compact graph neural network, trained on single-molecule odour labels and then frozen. Its mixture readout is additive and follows a principle from olfactory psychophysics: components contribute unequally, and a few dominant ones outweigh the rest. Their weights are read from the network's attention over atoms. Each mixture embedding also carries a learned length, so the distance between two mixtures depends on both the direction and the length of their embeddings. Only a small number of regularized parameters are fitted on mixtures. On the DREAM mixture challenge data, Pony improves on the open-POM baseline by 37% on T46, 13% on V50 and 18% in cross-validation, and it outperforms all prior methods we evaluated. As more rated mixtures become available, we plan to model finer-grained interactions between atoms within a molecule and between molecules within a mixture.</p>
+ 
+<h2 class="session">Appendix</h2>
+<div class="wide">
+<table>
+<caption><b>Table A1.</b> Open-POM and Pony, stage by stage.</caption>
+<thead><tr><th>Stage</th><th style="text-align:left">Open-POM</th><th style="text-align:left">Pony (w/o attention; with attention)</th></tr></thead>
+<tbody>
+<tr><td>Input</td><td style="text-align:left">molecule graph, 134 inputs per atom</td><td style="text-align:left">same</td></tr>
+<tr><td>Atom embedding</td><td style="text-align:left">linear + ReLU, 100</td><td style="text-align:left">linear, 64</td></tr>
+<tr><td>Message passing</td><td style="text-align:left">5 rounds, edge network hidden 75</td><td style="text-align:left">3 rounds, edge network hidden 16</td></tr>
+<tr><td>Atoms to molecule</td><td style="text-align:left;white-space:normal">set2set: LSTM query (2 layers), 3 iterations, output 400</td><td style="text-align:left;white-space:normal">w/o attention: average. With attention: one linear atom scorer (64 weights plus a bias, 65 parameters). Output 64, centred</td></tr>
+<tr><td>Read-out to words</td><td style="text-align:left;white-space:normal">dense 400 → 392 → 392 → 256 → 138, BatchNorm, ReLU, dropout</td><td style="text-align:left">one linear layer, 64 → 138</td></tr>
+<tr><td>Vector used for mixtures</td><td style="text-align:left">138 word probabilities, rank-scaled</td><td style="text-align:left">64 hidden units, unit direction</td></tr>
+<tr class="sep"><td>Parameters</td><td style="text-align:left">2.09 M</td><td style="text-align:left">0.117 M (116,538; 116,603 with attention)</td></tr>
+<tr><td>Held-out AUROC, single molecules</td><td style="text-align:left">0.890</td><td style="text-align:left">0.860</td></tr>
+<tr><td>Memorization gap (training AUROC − held-out AUROC)</td><td style="text-align:left">0.069</td><td style="text-align:left">0.025</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="wide">
+<table>
+<caption><b>Table A2.</b> The 24 chemical groups of Section 1.2, from RDKit's functional-group list, with the number of training molecules that carry each. Names in brackets were carried by exactly the same molecules and are merged.</caption>
+<thead><tr><th style="text-align:left">Group</th><th style="text-align:left">RDKit name</th><th>Molecules</th></tr></thead>
+<tbody><tr><td style="text-align:left">carbonyl oxygen (C=O)</td><td style="text-align:left"><code>C_O</code></td><td>138</td></tr><tr><td style="text-align:left">carbonyl oxygen, excluding carboxylic acids</td><td style="text-align:left"><code>C_O_noCOO</code></td><td>120</td></tr><tr><td style="text-align:left">ether oxygen</td><td style="text-align:left"><code>ether</code></td><td>90</td></tr><tr><td style="text-align:left">benzene ring</td><td style="text-align:left"><code>benzene</code></td><td>71</td></tr><tr><td style="text-align:left">ester</td><td style="text-align:left"><code>ester</code></td><td>65</td></tr><tr><td style="text-align:left">allylic oxidation site</td><td style="text-align:left"><code>allylic_oxid</code></td><td>51</td></tr><tr><td style="text-align:left">unbranched carbon chain of at least four carbons</td><td style="text-align:left"><code>unbrch_alkane</code></td><td>50</td></tr><tr><td style="text-align:left">aliphatic hydroxyl (alcohol)</td><td style="text-align:left"><code>Al_OH</code></td><td>40</td></tr><tr><td style="text-align:left">aliphatic hydroxyl, excluding tertiary alcohols</td><td style="text-align:left"><code>Al_OH_noTert</code></td><td>34</td></tr><tr><td style="text-align:left">ketone</td><td style="text-align:left"><code>ketone</code></td><td>27</td></tr><tr><td style="text-align:left">aldehyde</td><td style="text-align:left"><code>aldehyde</code></td><td>27</td></tr><tr><td style="text-align:left">methoxy group (–OCH₃)</td><td style="text-align:left"><code>methoxy</code></td><td>26</td></tr><tr><td style="text-align:left">methyl on an aromatic ring</td><td style="text-align:left"><code>aryl_methyl</code></td><td>23</td></tr><tr><td style="text-align:left">bicyclic ring system</td><td style="text-align:left"><code>bicyclic</code></td><td>22</td></tr><tr><td style="text-align:left">ketone, excluding diaryl and α,β-unsaturated ketones</td><td style="text-align:left"><code>ketone_Topliss</code></td><td>21</td></tr><tr><td style="text-align:left">carboxylic acid</td><td style="text-align:left"><code>Al_COO (= COO, COO2)</code></td><td>19</td></tr><tr><td style="text-align:left">para-hydroxylation site on an aromatic ring</td><td style="text-align:left"><code>para_hydroxylation</code></td><td>16</td></tr><tr><td style="text-align:left">aromatic hydroxyl (phenol)</td><td style="text-align:left"><code>Ar_OH (= phenol, phenol_noOrthoHbond)</code></td><td>12</td></tr><tr><td style="text-align:left">sulfide (thioether)</td><td style="text-align:left"><code>sulfide</code></td><td>11</td></tr><tr><td style="text-align:left">aromatic nitrogen</td><td style="text-align:left"><code>Ar_N</code></td><td>10</td></tr><tr><td style="text-align:left">tertiary amine</td><td style="text-align:left"><code>NH0</code></td><td>8</td></tr><tr><td style="text-align:left">lactone (cyclic ester)</td><td style="text-align:left"><code>lactone</code></td><td>7</td></tr><tr><td style="text-align:left">secondary amine</td><td style="text-align:left"><code>NH1</code></td><td>5</td></tr><tr><td style="text-align:left">thiol</td><td style="text-align:left"><code>SH</code></td><td>5</td></tr></tbody>
+</table>
+</div>
+
+<h3>What open-POM can do without</h3>
+<p>We retrained open-POM's layout with one part changed at a time (Table A3). Its LSTM pooling can be removed: a plain average over atoms keeps accuracy, gap and mixture scores unchanged with 0.88 M fewer parameters. One learned query over atoms, as Pony uses, does slightly better than the LSTM on every mixture set (T46 0.404 → 0.457, V50 0.554 → 0.570, CV 0.397 → 0.404). The number of message-passing rounds hardly matters, and halving or doubling the width changes nothing. Only replacing the deep read-out with a linear layer lowers the memorization gap, from 0.069 to 0.058.</p>
+<div class="wide">
+<table>
+<caption><b>Table A3.</b> Open-POM's layout, retrained with one part changed at a time: same single molecules, held-out split, training recipe and three random starts. Mixtures as in Table 6 (word profiles averaged, only a line fitted on DREAM). Message-passing rounds share their weights, so changing the number of rounds changes how far each atom sees, not the parameter count.</caption>
+<thead><tr><th>Open-POM layout</th><th>Parameters</th><th>Held-out AUROC</th><th>Memorization gap</th><th>T46</th><th>V50</th><th>CV</th></tr></thead>
+<tbody>
+<tr><td>As released (5 rounds, width 100, LSTM pooling, deep read-out)</td><td>2.09 M</td><td>0.890</td><td>0.069</td><td>0.404</td><td>0.554</td><td>0.397</td></tr>
+<tr class="sep"><td>LSTM pooling → average over atoms</td><td>1.21 M</td><td>0.890</td><td>0.069</td><td>0.415</td><td>0.544</td><td>0.394</td></tr>
+<tr><td>LSTM pooling → one learned query</td><td>1.21 M</td><td>0.888</td><td>0.074</td><td>0.457</td><td>0.570</td><td>0.404</td></tr>
+<tr class="sep"><td>Message passing off (0 rounds)</td><td>2.09 M</td><td>0.879</td><td>0.072</td><td>0.440</td><td>0.546</td><td>0.385</td></tr>
+<tr><td>1 round</td><td>2.09 M</td><td>0.886</td><td>0.072</td><td>0.437</td><td>0.549</td><td>0.388</td></tr>
+<tr><td>3 rounds</td><td>2.09 M</td><td>0.887</td><td>0.073</td><td>0.375</td><td>0.539</td><td>0.385</td></tr>
+<tr><td>8 rounds</td><td>2.09 M</td><td>0.892</td><td>0.064</td><td>0.390</td><td>0.537</td><td>0.389</td></tr>
+<tr><td>Width 50</td><td>1.08 M</td><td>0.889</td><td>0.067</td><td>0.385</td><td>0.567</td><td>0.385</td></tr>
+<tr><td>Width 200</td><td>5.64 M</td><td>0.889</td><td>0.072</td><td>0.422</td><td>0.557</td><td>0.387</td></tr>
+<tr class="sep"><td>Average over atoms + linear read-out</td><td>0.86 M</td><td>0.872</td><td>0.058</td><td>0.423</td><td>0.529</td><td>0.400</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">Held-out AUROC: three-member average prediction on the 1,008 held-out molecules. Memorization gap: training AUROC (1,000 training molecules) minus held-out AUROC, averaged over members. T46, V50, CV: Pearson r. No change in mixture r from the released layout has a 95% interval that excludes zero. At 0 rounds each atom still sums its bonded neighbours once, when atom and bond vectors are folded together before pooling.</p>
+<ul>
+<li><b>Can be removed:</b> the LSTM pooling (0.88 M parameters) and the extra message-passing rounds, with no loss on single molecules or mixtures.</li>
+<li><b>Simplified and better:</b> one learned query over atoms in place of the LSTM gives the best mixture scores of all rows.</li>
+<li><b>Memorization gap:</b> no single component explains it. Only a linear read-out lowers it, to 0.058.</li>
+</ul>
+
+<h2 class="session">References</h2>
+<ul class="refs">
+<li>Ahlmann-Eltze, C., Huber, W., &amp; Anders, S. (2025). Deep-learning-based gene perturbation effect prediction does not yet outperform simple linear baselines. <i>Nature Methods</i>, 22(8), 1657–1661.</li>
+<li>Barsainyan, A. A., Kumar, R., Saha, P., &amp; Schmuker, M. (2023). <i>OpenPOM - Open Principal Odor Map</i> [Software]. https://github.com/BioMachineLearning/openpom</li>
+<li>Boethius, A. M. S. (early 6th century). <i>De institutione musica</i>, Book 1, chapters 10–11. English translation: Bower, C. M. (Trans.). (1989). <i>Fundamentals of Music</i>. New Haven: Yale University Press.</li>
+<li>Brown, T. B., Mann, B., Ryder, N., et al. (2020). Language models are few-shot learners. <i>Advances in Neural Information Processing Systems</i>, 33, 1877–1901.</li>
+<li>Buck, L., &amp; Axel, R. (1991). A novel multigene family may encode odorant receptors: a molecular basis for odor recognition. <i>Cell</i>, 65(1), 175–187.</li>
+<li>Bushdid, C., Magnasco, M. O., Vosshall, L. B., &amp; Keller, A. (2014). Humans can discriminate more than 1 trillion olfactory stimuli. <i>Science</i>, 343(6177), 1370–1372.</li>
+<li>Cain, W. S. (1975). Odor intensity: mixtures and masking. <i>Chemical Senses</i>, 1(3), 339–352.</li>
+<li>Cain, W. S., &amp; Drexler, M. (1974). Scope and evaluation of odor counteraction and masking. <i>Annals of the New York Academy of Sciences</i>, 237(1), 427–439.</li>
+<li>Deng, J., Dong, W., Socher, R., Li, L.-J., Li, K., &amp; Fei-Fei, L. (2009). ImageNet: A large-scale hierarchical image database. <i>IEEE Conference on Computer Vision and Pattern Recognition</i>, 248–255.</li>
+<li>Devlin, J., Chang, M.-W., Lee, K., &amp; Toutanova, K. (2019). BERT: Pre-training of deep bidirectional transformers for language understanding. <i>Proceedings of NAACL-HLT</i>, 4171–4186.</li>
+<li>Edwards, M. (1992). <i>The Fragrance Manual</i>. Sydney: Michael Edwards &amp; Co. Continued from 2000 as <i>Fragrances of the World</i>. fragrancesoftheworld.com</li>
+<li>He, K., Zhang, X., Ren, S., &amp; Sun, J. (2016). Deep residual learning for image recognition. <i>IEEE Conference on Computer Vision and Pattern Recognition</i>, 770–778.</li>
+<li>Helmholtz, H. von. (1863). <i>Die Lehre von den Tonempfindungen als physiologische Grundlage für die Theorie der Musik</i>. Braunschweig: Vieweg. English translation: Ellis, A. J. (Trans.). (1875). <i>On the Sensations of Tone as a Physiological Basis for the Theory of Music</i>. London: Longmans, Green.</li>
+<li>Khan, R. M., Luk, C.-H., Flinker, A., Aggarwal, A., Lapid, H., Haddad, R., &amp; Sobel, N. (2007). Predicting odor pleasantness from odorant structure: pleasantness as a reflection of the physical world. <i>Journal of Neuroscience</i>, 27(37), 10015–10023.</li>
+<li>Krogh, A., &amp; Hertz, J. A. (1991). A simple weight decay can improve generalization. <i>Advances in Neural Information Processing Systems</i>, 4, 950–957.</li>
+<li>Laing, D. G., &amp; Francis, G. W. (1989). The capacity of humans to identify odors in mixtures. <i>Physiology &amp; Behavior</i>, 46(5), 809–814.</li>
+<li>Lee, B. K., Mayhew, E. J., Sanchez-Lengeling, B., et al. (2023). A principal odor map unifies diverse tasks in olfactory perception. <i>Science</i>, 381(6661), 999–1006.</li>
+<li>Li, X., Grandvalet, Y., &amp; Davoine, F. (2018). Explicit inductive bias for transfer learning with convolutional networks. <i>Proceedings of the 35th International Conference on Machine Learning</i>, 2825–2834.</li>
+<li>Liu, D. C., &amp; Nocedal, J. (1989). On the limited memory BFGS method for large scale optimization. <i>Mathematical Programming</i>, 45(1–3), 503–528.</li>
+<li>Malnic, B., Hirono, J., Sato, T., &amp; Buck, L. B. (1999). Combinatorial receptor codes for odors. <i>Cell</i>, 96(5), 713–723.</li>
+<li>Monell Chemical Senses Center. (2023, August 31). A step closer to digitizing the sense of smell: Monell Center, Osmo model describes odors better than human panelists [Press release]. monell.org</li>
+<li>Munsell, A. H. (1905). <i>A Color Notation</i>. Boston: G. H. Ellis Co.</li>
+<li>Newton, I. (1672). A letter of Mr. Isaac Newton … containing his new theory about light and colors. <i>Philosophical Transactions of the Royal Society of London</i>, 6(80), 3075–3087.</li>
+<li>Newton, I. (1704). <i>Opticks: Or, a Treatise of the Reflexions, Refractions, Inflexions and Colours of Light</i>. London: Sam. Smith &amp; Benj. Walford.</li>
+<li>Noble, A. C., Arnold, R. A., Masuda, B. M., Pecore, S. D., Schmidt, J. O., &amp; Stern, P. M. (1984). Progress towards a standardized system of wine aroma terminology. <i>American Journal of Enology and Viticulture</i>, 35(2), 107–109.</li>
+<li>Noble, A. C., Arnold, R. A., Buechsenstein, J., Leach, E. J., Schmidt, J. O., &amp; Stern, P. M. (1987). Modification of a standardized system of wine aroma terminology. <i>American Journal of Enology and Viticulture</i>, 38(2), 143–146.</li>
+<li>Olsen, S. R., Bhandawat, V., &amp; Wilson, R. I. (2010). Divisive normalization in olfactory population codes. <i>Neuron</i>, 66(2), 287–299.</li>
+<li>Pinheiro, P. O., &amp; Collobert, R. (2015). From image-level to pixel-level labeling with convolutional networks. <i>IEEE Conference on Computer Vision and Pattern Recognition</i>, 1713–1721.</li>
+<li>Ravia, A., Snitz, K., Honigstein, D., et al. (2020). A measure of smell enables the creation of olfactory metamers. <i>Nature</i>, 588(7836), 118–123.</li>
+<li>Reddy, G., Zak, J. D., Vergassola, M., &amp; Murthy, V. N. (2018). Antagonism in olfactory receptor neurons and its implications for the perception of odor mixtures. <i>eLife</i>, 7, e34958.</li>
+<li>Roohani, Y., Huang, K., &amp; Leskovec, J. (2024). Predicting transcriptional outcomes of novel multigene perturbations with GEARS. <i>Nature Biotechnology</i>, 42(6), 927–935.</li>
+<li>Rospars, J.-P., Lansky, P., Chaput, M., &amp; Duchamp-Viret, P. (2008). Competitive and noncompetitive odorant interactions in the early neural coding of odorant mixtures. <i>Journal of Neuroscience</i>, 28(10), 2659–2666.</li>
+<li>Satarifard, V., Sisson, L., Han, Y., et al. (DREAM Olfactory Mixtures Prediction Consortium). (2026). A semantic-based community model for high-fidelity tuning of olfactory mixture distances. <i>Proceedings of the National Academy of Sciences</i>, 123(32), e2611057123.</li>
+<li>Snitz, K., Yablonka, A., Weiss, T., Frumin, I., Khan, R. M., &amp; Sobel, N. (2013). Predicting odor perceptual similarity from odor structure. <i>PLoS Computational Biology</i>, 9(9), e1003184.</li>
+<li>Spencer, M., Sage, E., Velez, M., &amp; Guinard, J.-X. (2016). Using single free sorting and multivariate exploratory methods to design a new coffee taster's flavor wheel. <i>Journal of Food Science</i>, 81(12), S2997–S3005.</li>
+<li>Specialty Coffee Association of America &amp; World Coffee Research. (2016). <i>Coffee Taster's Flavor Wheel</i>. sca.coffee</li>
+<li>Thomas-Danguin, T., Sinding, C., Romagny, S., et al. (2014). The perception of odor objects in everyday life: a review on the processing of odor mixtures. <i>Frontiers in Psychology</i>, 5, 504.</li>
+<li>Tom, G., Ser, C. T., Rajaonson, E. M., Lo, S., Park, H. S., Lee, B. K., &amp; Sanchez-Lengeling, B. (2025). Does this smell the same? Learning representations of olfactory mixtures using inductive biases. <i>Machine Learning: Science and Technology</i>, 6(3), 035063.</li>
+<li>Wadell, A., Bhutani, A., Azumah, V., et al. (2025). Foundation models for discovery and exploration in chemical space. arXiv:2510.18900.</li>
+<li>Weiss, T., Snitz, K., Yablonka, A., Khan, R. M., Gafsou, D., Schneidman, E., &amp; Sobel, N. (2012). Perceptual convergence of multi-component mixtures in olfaction implies an olfactory white. <i>Proceedings of the National Academy of Sciences</i>, 109(49), 19959–19964.</li>
+<li>World Coffee Research. (2016). <i>World Coffee Research Sensory Lexicon</i> (1st ed.). worldcoffeeresearch.org</li>
+<li>Zhou, Y., Smith, B. H., &amp; Sharpee, T. O. (2018). Hyperbolic geometry of the olfactory space. <i>Science Advances</i>, 4(8), eaaq1458.</li>
+</ul>

@@ -7,7 +7,7 @@
   <a class="hero" href="{{ hero.url | relative_url }}">
     <div class="hero-text">
       <h2>{{ hero.title }}</h2>
-      <p class="fade">{{ hero.excerpt | strip_html | normalize_whitespace | truncate: 260 }}</p>
+      <p class="fade">{% if hero.summary %}{{ hero.summary }}{% else %}{{ hero.excerpt | strip_html | normalize_whitespace | truncate: 260 }}{% endif %}</p>
       <span class="meta"><b>{% include reading-time.html post=hero %}</b>{{ hero.date | date: site.date_format.short }}</span>
     </div>
     {% include cover.html post=hero class="hero-art" tone=0 %}

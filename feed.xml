@@ -13,7 +13,7 @@ permalink: /feed.xml
   <author><name>{{ site.author | xml_escape }}</name></author>
   {%- for p in site.posts limit: 50 %}
   {%- capture title -%}{% if p.title != "" %}{{ p.title }}{% else %}Update: {{ p.content | strip_html | normalize_whitespace | truncate: 80 }}{% endif %}{%- endcapture -%}
-  {%- capture summary -%}{% if p.kind == "update" %}{{ p.content }}{% else %}{{ p.excerpt }}{% endif %}{%- endcapture %}
+  {%- capture summary -%}{% if p.kind == "update" %}{{ p.content }}{% elsif p.summary %}{{ p.summary }}{% else %}{{ p.excerpt }}{% endif %}{%- endcapture %}
   <entry>
     <title>{{ title | strip | xml_escape }}</title>
     <link href="{{ p.url | absolute_url }}" rel="alternate" type="text/html"/>

@@ -3,6 +3,7 @@
 title: "Your title"       # updates: title: ""
 date: 2026-01-01          # must match the file-name date
 kind: post                # post | update (update = no title, no image, full text in the list)
+summary:                  # optional: short summary shown in full in lists, link previews and RSS (else the text before <!--more-->, cut at 200 characters)
 tags: []
 featured: false           # true = "Top post" on the home page (newest featured wins)
 math: false               # true = load MathJax; write $$x$$

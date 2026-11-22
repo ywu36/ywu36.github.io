@@ -15,7 +15,7 @@
   <div class="kind">Post</div>
   <div>
     <a class="row-title stretched" href="{{ p.url | relative_url }}">{{ p.title }}</a>
-    <p class="row-ex">{{ p.excerpt | strip_html | normalize_whitespace | truncate: 200 }}</p>
+    <p class="row-ex">{% if p.summary %}{{ p.summary }}{% else %}{{ p.excerpt | strip_html | normalize_whitespace | truncate: 200 }}{% endif %}</p>
     <div class="row-meta">{{ date }}{% if p.tags.size > 0 %}<span class="dot">•</span>{{ p.tags | join: ", " }}{% endif %}</div>
   </div>
   {% assign tone = forloop.index | modulo: 4 %}{% include cover.html post=p class="thumb" tone=tone %}
