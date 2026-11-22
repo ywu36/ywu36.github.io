@@ -10,6 +10,7 @@ thumb: /assets/img/structure-over-scale/og.png
 og_image: /assets/img/structure-over-scale/og.png
 ---
 <div class="abstract"><p><b>Abstract.</b> Computers can now see and hear, but they still struggle to smell: smells are costly to label, and we have no shared language to describe them. Most things we smell are mixtures, and in the DREAM olfactory mixtures challenge, an open international competition, no method reliably beat a simple recipe: describe each molecule in odour words with the Principal Odor Map (open-POM), then average. Our insight is that mixing should follow how the nose combines odours: components add in a receptor-like code, and a few dominant ones outweigh the rest. We present Pony, a graph neural network trained on single molecules, with only its mixture layer then fine-tuned on DREAM; it is 18 times smaller than open-POM yet outperforms it by 37% and 13% on the DREAM challenge's T46 and V50 test sets and by 18% in cross-validation. Pony sums unit molecule directions in its hidden layer, weights each molecule by a strength read from its atom attention, and gives each mixture a learned length, so similarity depends on both direction and length. It also beats all prior methods we evaluated.</p></div>
+<p class="code-link"><b>Code and trained model:</b> <a href="https://github.com/ywu36/pred_mixture">github.com/ywu36/pred_mixture</a></p>
 
 <!--more-->
 <style>
