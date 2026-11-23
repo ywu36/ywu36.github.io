@@ -33,4 +33,5 @@
 
   <h3 class="side-sec">Links</h3>
   <p class="side-links">{% for l in profile.links %}<a href="{{ l.url }}">{{ l.name }}</a>{% endfor %}</p>
+  {% if profile.email %}<p class="side-email">{{ profile.email }}</p>{% endif %}
 </aside>

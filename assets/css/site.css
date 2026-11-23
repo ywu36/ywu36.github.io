@@ -160,6 +160,7 @@ button { font: inherit; }
 .lr { display: flex; justify-content: space-between; gap: 10px; color: var(--body); }
 .lr span:last-child { white-space: nowrap; color: var(--muted); }
 .side-links a { margin-right: 12px; white-space: nowrap; color: var(--accent); }
+.side-email { margin: 4px 0 0; font-size: 13.5px; color: var(--body); }
 
 /* 6. Post & page ---------------------------------------------------------- */
 .post, .page { max-width: var(--narrow); margin: 0 auto; padding: 56px 24px 40px; }
