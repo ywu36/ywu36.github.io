@@ -25,6 +25,8 @@ The results, on a synthetic perfume house whose secrets are recipes:
 - Against a scripted ring of four accounts holding outside knowledge (a ten-day run, cap 20%), the proof alone left 6 of 9 targeted recipes over the cap. The three parties brought that to 2 of 9 and the worst guess chance from 100% to 26%, while honest requests answered fell from 95.8% to 84.0% and no honest account was stopped. The 2 recipes still over the cap were taken by accounts the predictor could not link.
 - A weaker model behind the CRM system did not change the cap; it made the replies worse.
 
+**Code:** [github.com/ywu36/dpd-defense](https://github.com/ywu36/dpd-defense)
+
 <!--more-->
 
 ## Why this problem, and why now
